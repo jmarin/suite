@@ -78,6 +78,11 @@
       <artifactId>styler</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.opengeo.geoserver</groupId>
+      <artifactId>georest</artifactId>
+      <version>${project.version}</version>
+    </dependency>
    <!-- Jetty test deps so that we can start GeoServer from an IDE as well -->
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
