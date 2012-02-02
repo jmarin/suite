@@ -6,7 +6,7 @@ import org.junit.Test;
 
 /**
  * 
- * GeoServices REST DRAFT 3 Specification 9.8 Array
+ * GeoServices REST DRAFT 1 Specification - 9.8 Array
  * 
  * @author Juan Marin, OpenGeo
  * 
