@@ -18,7 +18,8 @@ public class CatalogResourceTest extends GeoServerTestSupport {
 
     /**
      * Req. 1: The Catalog resource SHALL accept requests that conform to the URI template in Table 3 and use any HTTP method identified in the same
-     * table
+     * table (GET)
+     * Req. 2: A Catalog resource SHALL support all parameters and values specified in Table 4 (f=json)
      */
 
     public void testGetCatalogRootURI() throws Exception {
