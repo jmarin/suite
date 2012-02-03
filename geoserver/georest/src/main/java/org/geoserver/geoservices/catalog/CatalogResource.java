@@ -64,13 +64,13 @@ public class CatalogResource extends ReflectiveResource {
 
         return formats;
     }
-    
+
     @Override
-    protected DataFormat getFormatGet(){
+    protected DataFormat getFormatGet() {
         DataFormat df = super.getFormatGet();
-        if (df != null){
+        if (df != null) {
             return df;
-        }else {
+        } else {
             Map<MediaType, DataFormat> formats = getFormats();
             GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
             return format;
@@ -82,8 +82,6 @@ public class CatalogResource extends ReflectiveResource {
         try {
             String format = getAttribute("format");
             if (!format.equals("json")) {
-                
-                Map<MediaType, DataFormat> formats = this.getFormats();
                 List<String> details = new ArrayList<String>();
                 details.add("Format " + format + " is not supported");
 
@@ -123,7 +121,6 @@ public class CatalogResource extends ReflectiveResource {
         return format;
     }
 
-   
     @Override
     protected void configureXStream(XStream xstream) {
         xstream.processAnnotations(CatalogService.class);
