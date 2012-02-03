@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.geometry;
+package org.geoserver.geoservices.services;
 
 import org.geoserver.geoservices.core.AbstractService;
 import org.geoserver.geoservices.core.ServiceType;
