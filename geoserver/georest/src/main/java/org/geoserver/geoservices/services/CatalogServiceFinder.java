@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.catalog;
+package org.geoserver.geoservices.services;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.rest.AbstractCatalogFinder;
@@ -12,9 +12,9 @@ import org.restlet.resource.Resource;
  *
  */
 
-public class ServiceFinder extends AbstractCatalogFinder {
+public class CatalogServiceFinder extends AbstractCatalogFinder {
 
-    protected ServiceFinder(Catalog catalog) {
+    protected CatalogServiceFinder(Catalog catalog) {
         super(catalog);
     }
 

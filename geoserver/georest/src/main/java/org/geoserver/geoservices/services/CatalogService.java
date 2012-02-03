@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.catalog;
+package org.geoserver.geoservices.services;
 
 import java.util.List;
 

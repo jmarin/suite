@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.catalog;
+package org.geoserver.geoservices.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.geoservices.core.AbstractService;
 import org.geoserver.geoservices.exception.ServiceError;
 import org.geoserver.geoservices.exception.ServiceException;
-import org.geoserver.geoservices.geometry.GeometryService;
 import org.geoserver.geoservices.rest.format.GeoRestReflectiveJSONFormat;
 import org.geoserver.rest.ReflectiveResource;
 import org.geoserver.rest.format.DataFormat;
@@ -89,16 +89,23 @@ public class CatalogResource extends ReflectiveResource {
                         details));
 
             } else {
-                System.out.println(format);
-                List<WorkspaceInfo> workspaces = catalog.getWorkspaces();
-                List<String> folders = new ArrayList<String>();
-                for (WorkspaceInfo workspace : workspaces) {
-                    folders.add(workspace.getName());
-                }
-
                 List<AbstractService> services = new ArrayList<AbstractService>();
                 GeometryService geometryService = new GeometryService("Geometry");
                 services.add(geometryService);
+                List<LayerGroupInfo> layerGroupsInfo = catalog.getLayerGroups();
+                for (LayerGroupInfo layerGroupInfo : layerGroupsInfo){
+                    MapService mapService = new MapService(layerGroupInfo.getName());
+                    services.add(mapService);
+                }
+                
+//                List<WorkspaceInfo> workspaces = catalog.getWorkspaces();
+                List<String> folders = new ArrayList<String>();
+//                for (WorkspaceInfo workspace : workspaces) {
+//                    folders.add(workspace.getName());
+//                }
+
+                
+               
                 return new CatalogService("services", "1.0", "OpenGeo Suite Enterprise Edition",
                         "2.4.4", folders, services);
             }
