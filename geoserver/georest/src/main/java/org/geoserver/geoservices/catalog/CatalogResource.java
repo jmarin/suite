@@ -71,7 +71,6 @@ public class CatalogResource extends ReflectiveResource {
         if (df != null) {
             return df;
         } else {
-            Map<MediaType, DataFormat> formats = getFormats();
             GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
             return format;
         }
