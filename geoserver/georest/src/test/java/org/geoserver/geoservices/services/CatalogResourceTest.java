@@ -29,7 +29,7 @@ public class CatalogResourceTest extends GeoServerTestSupport {
         assertEquals("OpenGeo Suite Enterprise Edition", jsonObject.get("productName"));
         assertEquals(ServiceType.CatalogServer.toString(), jsonObject.get("type"));
         JSONArray folders = (JSONArray) jsonObject.get("folders");
-        assertEquals(5, folders.size());
+        assertEquals(0, folders.size());
         JSONArray services = (JSONArray) jsonObject.get("services");
         assertEquals(1, services.size());
     }
