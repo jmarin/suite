@@ -7,7 +7,7 @@
     http://www.springframework.org/schema/tx/spring-tx.xsd"
 	default-autowire="byName">
 
-	<bean id="serviceFinder" class="org.geoserver.geoservices.catalog.ServiceFinder">
+	<bean id="catalogServiceFinder" class="org.geoserver.geoservices.services.CatalogServiceFinder">
 		<constructor-arg ref="catalog" />
 	</bean>
 
@@ -18,13 +18,13 @@
 					<key>
 						<value>/services/?f={format}</value>
 					</key>
-					<value>serviceFinder</value>
+					<value>catalogServiceFinder</value>
 				</entry>
 				<entry>
 					<key>
 						<value>/services/{workspace}?f={format}</value>
 					</key>
-					<value>serviceFinder</value>
+					<value>catalogServiceFinder</value>
 				</entry>
 
 			</map>
