@@ -59,7 +59,7 @@
 			<groupId>org.restlet</groupId>
 			<artifactId>org.restlet.ext.json</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.geoserver</groupId>
 			<artifactId>main</artifactId>
@@ -82,6 +82,18 @@
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>tests</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>1.9.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.3</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
