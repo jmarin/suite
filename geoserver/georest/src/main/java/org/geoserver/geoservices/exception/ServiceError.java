@@ -1,17 +1,25 @@
 package org.geoserver.geoservices.exception;
 
+import java.util.List;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
 /**
  * 
  * @author Juan Marin, OpenGeo
- *
+ * 
  */
+
+@XStreamAlias("error")
 public class ServiceError {
 
     private String code;
 
     private String message;
 
-    private String[] details;
+    @XStreamImplicit(itemFieldName = "details")
+    private List<String> details;
 
     public String getCode() {
         return code;
@@ -29,11 +37,17 @@ public class ServiceError {
         this.message = message;
     }
 
-    public String[] getDetails() {
+    public List<String> getDetails() {
         return details;
     }
 
-    public void setDetails(String[] details) {
+    public void setDetails(List<String> details) {
+        this.details = details;
+    }
+
+    public ServiceError(String code, String message, List<String> details) {
+        this.code = code;
+        this.message = message;
         this.details = details;
     }
 

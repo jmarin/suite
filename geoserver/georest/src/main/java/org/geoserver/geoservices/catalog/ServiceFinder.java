@@ -20,7 +20,13 @@ public class ServiceFinder extends AbstractCatalogFinder {
 
     @Override
     public Resource findTarget(Request request, Response response) {
-        return new CatalogResource(null, request, response, catalog);
+        try {
+            return new CatalogResource(null, request, response, catalog);    
+        } catch (Exception e) {
+            System.out.println(e.getLocalizedMessage());
+            return null;
+        }
+        
     }
 
 }

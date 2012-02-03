@@ -30,9 +30,7 @@ public class CatalogService extends AbstractService {
     
     private String specVersion;
 
-    @XStreamOmitField
     private String productName;
-
     
     private String currentVersion;
 

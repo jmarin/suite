@@ -2,19 +2,26 @@ package org.geoserver.geoservices.catalog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.geoservices.core.AbstractService;
+import org.geoserver.geoservices.exception.ServiceError;
+import org.geoserver.geoservices.exception.ServiceException;
 import org.geoserver.geoservices.geometry.GeometryService;
 import org.geoserver.geoservices.rest.format.GeoRestReflectiveJSONFormat;
 import org.geoserver.rest.ReflectiveResource;
+import org.geoserver.rest.format.DataFormat;
 import org.geoserver.rest.format.ReflectiveJSONFormat;
+import org.geoserver.rest.format.ReflectiveXMLFormat;
 import org.geotools.util.logging.Logging;
 import org.restlet.Context;
+import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.data.Status;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -49,35 +56,80 @@ public class CatalogResource extends ReflectiveResource {
     }
 
     @Override
-    protected Object handleObjectGet() throws Exception {
-        List<WorkspaceInfo> workspaces = catalog.getWorkspaces();
-        List<String> folders = new ArrayList<String>();
-        for (WorkspaceInfo workspace : workspaces) {
-            folders.add(workspace.getName());
-        }
+    protected List<DataFormat> createSupportedFormats(Request request, Response response) {
+        List<DataFormat> formats = new ArrayList<DataFormat>();
+        // formats.add(createHTMLFormat(request,response));
+        // formats.add(createXMLFormat(request,response) );
+        formats.add(createJSONFormat(request, response));
 
-        List<AbstractService> services = new ArrayList<AbstractService>();
-        GeometryService geometryService = new GeometryService("Geometry");
-        services.add(geometryService);
-        return new CatalogService("services", "1.0", "OpenGeo Suite Enterprise Edition", "2.4.4", folders, services);
+        return formats;
+    }
+    
+    @Override
+    protected DataFormat getFormatGet(){
+        DataFormat df = super.getFormatGet();
+        if (df != null){
+            return df;
+        }else {
+            Map<MediaType, DataFormat> formats = getFormats();
+            GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
+            return format;
+        }
     }
 
     @Override
-    protected ReflectiveJSONFormat createJSONFormat(Request request,Response response) {
+    protected Object handleObjectGet() throws Exception {
+        try {
+            String format = getAttribute("format");
+            if (!format.equals("json")) {
+                
+                Map<MediaType, DataFormat> formats = this.getFormats();
+                List<String> details = new ArrayList<String>();
+                details.add("Format " + format + " is not supported");
+
+                return new ServiceException(new ServiceError(
+                        (String.valueOf(Status.CLIENT_ERROR_BAD_REQUEST.getCode())), "Bad Request",
+                        details));
+
+            } else {
+                System.out.println(format);
+                List<WorkspaceInfo> workspaces = catalog.getWorkspaces();
+                List<String> folders = new ArrayList<String>();
+                for (WorkspaceInfo workspace : workspaces) {
+                    folders.add(workspace.getName());
+                }
+
+                List<AbstractService> services = new ArrayList<AbstractService>();
+                GeometryService geometryService = new GeometryService("Geometry");
+                services.add(geometryService);
+                return new CatalogService("services", "1.0", "OpenGeo Suite Enterprise Edition",
+                        "2.4.4", folders, services);
+            }
+        } catch (Exception e) {
+            List<String> details = new ArrayList<String>();
+            details.add(e.getMessage());
+            return new ServiceException(new ServiceError(
+                    (String.valueOf(Status.CLIENT_ERROR_BAD_REQUEST.getCode())), "Bad Request",
+                    details));
+
+        }
+
+    }
+
+    @Override
+    protected ReflectiveJSONFormat createJSONFormat(Request request, Response response) {
         GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
-        configureXStream( format.getXStream() );
+        configureXStream(format.getXStream());
         return format;
     }
-    
-       
-    
-    /**
-     * Method for subclasses to customize of modify the xstream instance being used to persist and depersist XML and JSON.
-     */
+
+   
     @Override
     protected void configureXStream(XStream xstream) {
         xstream.processAnnotations(CatalogService.class);
-        //xstream.registerConverter(new CatalogServiceConverter());
+        xstream.processAnnotations(ServiceException.class);
+        xstream.processAnnotations(ServiceError.class);
+        // xstream.registerConverter(new CatalogServiceConverter());
     }
 
 }
