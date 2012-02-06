@@ -8,17 +8,17 @@ package org.geoserver.geoservices.geometry;
 
 public class Path {
 
-    private Coordinate[] coordinates;
+    private double[] coordinates;
     
-    public Path(Coordinate[] coords){
+    public Path(double[] coords){
         this.coordinates = coords;
     }
 
-    public Coordinate[] getCoordinates() {
+    public double[] getCoordinates() {
         return coordinates;
     }
 
-    public void setCoordinates(Coordinate[] coordinates) {
+    public void setCoordinates(double[] coordinates) {
         this.coordinates = coordinates;
     }
     

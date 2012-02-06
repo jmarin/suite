@@ -3,19 +3,19 @@ package org.geoserver.geoservices.geometry;
 /**
  * 
  * @author Juan Marin, OpenGeo
- *
+ * 
  */
 public class Polygon extends Geometry {
 
-    private Ring[] rings;
+    private double[][] rings;
 
     private SpatialReference spatialReference;
 
-    public Ring[] getRing() {
+    public double[][] getRings() {
         return rings;
     }
 
-    public void setRing(Ring[] ring) {
+    public void setRings(double[][] ring) {
         this.rings = ring;
     }
 
@@ -27,7 +27,7 @@ public class Polygon extends Geometry {
         this.spatialReference = spatialReference;
     }
 
-    public Polygon(Ring[] rings, SpatialReference spatialRef) {
+    public Polygon(double[][] rings, SpatialReference spatialRef) {
         this.rings = rings;
         this.spatialReference = spatialRef;
         this.geometryType = GeometryType.POLYGON;

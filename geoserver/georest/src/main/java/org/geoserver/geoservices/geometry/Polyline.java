@@ -3,20 +3,20 @@ package org.geoserver.geoservices.geometry;
 /**
  * 
  * @author Juan Marin, OpenGeo
- *
+ * 
  */
 
 public class Polyline extends Geometry {
 
-    private Path[] paths;
+    private double[][] paths;
 
     private SpatialReference spatialReference;
 
-    public Path[] getPaths() {
+    public double[][] getPaths() {
         return paths;
     }
 
-    public void setPaths(Path[] paths) {
+    public void setPaths(double[][] paths) {
         this.paths = paths;
     }
 
@@ -28,7 +28,7 @@ public class Polyline extends Geometry {
         this.spatialReference = spatialReference;
     }
 
-    public Polyline(Path[] paths, SpatialReference spatialRef) {
+    public Polyline(double[][] paths, SpatialReference spatialRef) {
         this.paths = paths;
         this.spatialReference = spatialRef;
         this.geometryType = GeometryType.POLYLINE;

@@ -7,15 +7,15 @@ package org.geoserver.geoservices.geometry;
  */
 public class MultiPoint extends Geometry {
 
-    private Coordinate[] points;
+    private double[] points;
 
     private SpatialReference spatialReference;
 
-    public Coordinate[] getPoints() {
+    public double[] getPoints() {
         return points;
     }
 
-    public void setPoints(Coordinate[] points) {
+    public void setPoints(double[] points) {
         this.points = points;
     }
 
@@ -27,7 +27,7 @@ public class MultiPoint extends Geometry {
         this.spatialReference = spatialReference;
     }
     
-    public MultiPoint(Coordinate[] coords, SpatialReference spatialReference){
+    public MultiPoint(double[] coords, SpatialReference spatialReference){
         this.points = coords;
         this.spatialReference = spatialReference;
         this.geometryType = GeometryType.MULTIPOINT;

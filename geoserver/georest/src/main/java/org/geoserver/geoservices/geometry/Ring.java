@@ -8,17 +8,17 @@ package org.geoserver.geoservices.geometry;
 
 public class Ring {
 
-    private Coordinate[] coordinates;
+    private double[][] coordinates;
 
-    public Coordinate[] getCoordinates() {
+    public double[][] getCoordinates() {
         return coordinates;
     }
 
-    public void setCoordinates(Coordinate[] coordinates) {
+    public void setCoordinates(double[][] coordinates) {
         this.coordinates = coordinates;
     }
     
-    public Ring(Coordinate[] coords) {
+    public Ring(double[][] coords) {
         this.coordinates = coords;
     }
     
@@ -26,8 +26,8 @@ public class Ring {
     public boolean isValid() {
         int size = coordinates.length;
         if (size > 0) {
-            Coordinate firstCoordinate = coordinates[0];
-            Coordinate lastCoordinate = coordinates[coordinates.length - 1];
+            double[] firstCoordinate = coordinates[0];
+            double[] lastCoordinate = coordinates[coordinates.length - 1];
             if (firstCoordinate.equals(lastCoordinate)) {
                 return true;
             } else {
