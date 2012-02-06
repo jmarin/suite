@@ -2,12 +2,10 @@ package org.geoserver.geoservices.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
-import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.geoservices.core.AbstractService;
 import org.geoserver.geoservices.exception.ServiceError;
 import org.geoserver.geoservices.exception.ServiceException;
@@ -15,10 +13,8 @@ import org.geoserver.geoservices.rest.format.GeoRestReflectiveJSONFormat;
 import org.geoserver.rest.ReflectiveResource;
 import org.geoserver.rest.format.DataFormat;
 import org.geoserver.rest.format.ReflectiveJSONFormat;
-import org.geoserver.rest.format.ReflectiveXMLFormat;
 import org.geotools.util.logging.Logging;
 import org.restlet.Context;
-import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
@@ -50,16 +46,22 @@ public class CatalogResource extends ReflectiveResource {
 
     protected Class clazz;
 
+    private String formatValue;
+
+    private String callback;
+
     public CatalogResource(Context context, Request request, Response response, Catalog catalog) {
         super(context, request, response);
         this.catalog = catalog;
+        this.formatValue = getRequest().getResourceRef().getQueryAsForm().getFirstValue("f");
+        this.callback = getRequest().getResourceRef().getQueryAsForm().getFirstValue("callback");
     }
 
     @Override
     protected List<DataFormat> createSupportedFormats(Request request, Response response) {
         List<DataFormat> formats = new ArrayList<DataFormat>();
         // formats.add(createHTMLFormat(request,response));
-        // formats.add(createXMLFormat(request,response) );
+        //formats.add(createXMLFormat(request,response) );
         formats.add(createJSONFormat(request, response));
 
         return formats;
@@ -79,10 +81,10 @@ public class CatalogResource extends ReflectiveResource {
     @Override
     protected Object handleObjectGet() throws Exception {
         try {
-            String format = getAttribute("format");
-            if (!format.equals("json")) {
+            DataFormat format = getFormatGet();
+            if (!formatValue.equals("json")) {
                 List<String> details = new ArrayList<String>();
-                details.add("Format " + format + " is not supported");
+                details.add("Format " + formatValue + " is not supported");
 
                 return new ServiceException(new ServiceError(
                         (String.valueOf(Status.CLIENT_ERROR_BAD_REQUEST.getCode())), "Bad Request",
@@ -93,21 +95,18 @@ public class CatalogResource extends ReflectiveResource {
                 GeometryService geometryService = new GeometryService("Geometry");
                 services.add(geometryService);
                 List<LayerGroupInfo> layerGroupsInfo = catalog.getLayerGroups();
-                for (LayerGroupInfo layerGroupInfo : layerGroupsInfo){
+                for (LayerGroupInfo layerGroupInfo : layerGroupsInfo) {
                     MapService mapService = new MapService(layerGroupInfo.getName());
                     services.add(mapService);
                 }
-                
-//                List<WorkspaceInfo> workspaces = catalog.getWorkspaces();
                 List<String> folders = new ArrayList<String>();
-//                for (WorkspaceInfo workspace : workspaces) {
-//                    folders.add(workspace.getName());
-//                }
-
-                
-               
-                return new CatalogService("services", "1.0", "OpenGeo Suite Enterprise Edition",
-                        "2.4.4", folders, services);
+                CatalogService catalogService = new CatalogService("services", "1.0",
+                        "OpenGeo Suite Enterprise Edition", "2.4.4", folders, services);
+                if (callback == null) {
+                    return catalogService;
+                } else {
+                    return catalogService;
+                }
             }
         } catch (Exception e) {
             List<String> details = new ArrayList<String>();
@@ -132,7 +131,8 @@ public class CatalogResource extends ReflectiveResource {
         xstream.processAnnotations(CatalogService.class);
         xstream.processAnnotations(ServiceException.class);
         xstream.processAnnotations(ServiceError.class);
-        // xstream.registerConverter(new CatalogServiceConverter());
+        //xstream.registerConverter(new CatalogServiceConverter());
+        
     }
 
 }

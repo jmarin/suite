@@ -16,13 +16,13 @@
 			<map>
 				<entry>
 					<key>
-						<value>/services/?f={format}</value>
+						<value>/services/?</value>
 					</key>
 					<value>catalogServiceFinder</value>
 				</entry>
 				<entry>
 					<key>
-						<value>/services/{workspace}?f={format}</value>
+						<value>/services/{folder}?f</value>
 					</key>
 					<value>catalogServiceFinder</value>
 				</entry>
