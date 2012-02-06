@@ -13,20 +13,20 @@ public class RingTest {
 
     @Test
     public void testIsValid(){
-        Coordinate c1 = new Coordinate(0,0);
-        Coordinate c2 = new Coordinate(0,1);
-        Coordinate c3 = new Coordinate(1,1);
-        Coordinate c4 = new Coordinate(1,0);
-        Coordinate c5 = new Coordinate(1,2);
+        double[] c1 = {0,0};
+        double[] c2 = {0,1};
+        double[] c3 = {1,1};
+        double[] c4 = {1,0};
+        double[] c5 = {1,2};
         
-        Coordinate[] coords1 = new Coordinate[5];
+        double[][] coords1 = new double[5][2];
         coords1[0] = c1;
         coords1[1] = c2;
         coords1[2] = c3;
         coords1[3] = c4;
         coords1[4] = c1; 
         
-        Coordinate[] coords2 = new Coordinate[5];
+        double[][] coords2 = new double[5][2];
         coords2[0] = c1;
         coords2[1] = c2;
         coords2[2] = c3;
