@@ -61,9 +61,8 @@ public class CatalogResource extends ReflectiveResource {
     protected List<DataFormat> createSupportedFormats(Request request, Response response) {
         List<DataFormat> formats = new ArrayList<DataFormat>();
         // formats.add(createHTMLFormat(request,response));
-        //formats.add(createXMLFormat(request,response) );
+        // formats.add(createXMLFormat(request,response) );
         formats.add(createJSONFormat(request, response));
-
         return formats;
     }
 
@@ -81,11 +80,9 @@ public class CatalogResource extends ReflectiveResource {
     @Override
     protected Object handleObjectGet() throws Exception {
         try {
-            DataFormat format = getFormatGet();
             if (!formatValue.equals("json")) {
                 List<String> details = new ArrayList<String>();
                 details.add("Format " + formatValue + " is not supported");
-
                 return new ServiceException(new ServiceError(
                         (String.valueOf(Status.CLIENT_ERROR_BAD_REQUEST.getCode())), "Bad Request",
                         details));
@@ -131,8 +128,8 @@ public class CatalogResource extends ReflectiveResource {
         xstream.processAnnotations(CatalogService.class);
         xstream.processAnnotations(ServiceException.class);
         xstream.processAnnotations(ServiceError.class);
-        //xstream.registerConverter(new CatalogServiceConverter());
-        
+        // xstream.registerConverter(new CatalogServiceConverter());
+
     }
 
 }
