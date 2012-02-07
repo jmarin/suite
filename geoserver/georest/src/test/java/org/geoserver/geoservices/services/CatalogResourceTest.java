@@ -19,7 +19,7 @@ import org.geoserver.test.GeoServerTestSupport;
  * 
  */
 
-public class CatalogResourceTest extends GeoServerTestSupport {
+public class CatalogResourceTest extends ResourceTest {
 
     /**
      * Req. 1: The Catalog resource SHALL accept requests that conform to the URI template in Table 3 and use any HTTP method identified in the same
@@ -48,19 +48,11 @@ public class CatalogResourceTest extends GeoServerTestSupport {
      * This tests for a request with the wrong format
      * 
      */
+    @Override
     public void testServiceException() throws Exception {
-        JSON json = getAsJSON("/rest/services/?f=xxx");
-        assertTrue(json instanceof JSONObject);
-        JSONObject jsonObject = (JSONObject) json;
-        JSONObject error = (JSONObject) jsonObject.get("error");
-        assertTrue(error instanceof JSONObject);
-        String code = (String) error.get("code");
-        assertEquals("400", code);
-        String message = (String) error.get("message");
-        assertEquals("Bad Request", message);
-        JSONArray details = (JSONArray) error.get("details");
-        assertTrue(details instanceof JSONArray);
-        assertEquals("Format xxx is not supported", details.getString(0));
+        String baseURL = "/rest/services/";
+        this.baseURL = baseURL;
+        super.testServiceException();
     }
 
     /**
