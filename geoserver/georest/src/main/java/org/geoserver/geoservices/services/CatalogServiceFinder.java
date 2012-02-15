@@ -5,11 +5,8 @@ import java.util.List;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.rest.AbstractCatalogFinder;
-import org.geoserver.geoservices.exception.ServiceError;
-import org.geoserver.geoservices.exception.ServiceException;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
-import org.restlet.data.Status;
 import org.restlet.resource.Resource;
 
 /**

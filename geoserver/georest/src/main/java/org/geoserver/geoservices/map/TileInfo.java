@@ -10,26 +10,26 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 /**
  * 
  * @author Juan Marin, OpenGeo
- *
+ * 
  */
 
 @XStreamAlias(value = "")
 public class TileInfo {
 
     private int rows;
-    
+
     private int cols;
-    
+
     private int dpi;
-    
+
     private String format;
-    
+
     private double compressionQuality;
-    
+
     private SpatialReference origin;
-    
+
     @XStreamImplicit(itemFieldName = "lods")
-    private List<LevelsOfDetail> lods;
+    private List<LevelOfDetail> lods;
 
     public int getRows() {
         return rows;
@@ -79,12 +79,27 @@ public class TileInfo {
         this.origin = origin;
     }
 
-    public List<LevelsOfDetail> getLods() {
+    public List<LevelOfDetail> getLods() {
         return lods;
     }
 
-    public void setLods(List<LevelsOfDetail> lods) {
+    public void setLods(List<LevelOfDetail> lods) {
         this.lods = lods;
     }
-    
+
+    public TileInfo(int rows, int cols, int dpi, String format, double compressionQuality,
+            SpatialReference origin, List<LevelOfDetail> lods) {
+        this.rows = rows;
+        this.cols = cols;
+        this.dpi = dpi;
+        this.format = format;
+        this.compressionQuality = compressionQuality;
+        this.origin = origin;
+        this.lods = lods;
+    }
+
+    public TileInfo() {
+        // TODO Auto-generated constructor stub
+    }
+
 }

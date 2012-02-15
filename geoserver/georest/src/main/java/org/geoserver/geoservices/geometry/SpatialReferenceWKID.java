@@ -1,5 +1,7 @@
 package org.geoserver.geoservices.geometry;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 
 /**
  * 
@@ -7,7 +9,7 @@ package org.geoserver.geoservices.geometry;
  *
  */
 
-
+@XStreamAlias(value = "")
 public class SpatialReferenceWKID extends SpatialReference {
 
     private int wkid;

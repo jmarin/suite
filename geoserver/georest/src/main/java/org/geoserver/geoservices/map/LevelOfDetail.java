@@ -9,7 +9,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 
 @XStreamAlias(value = "")
-public class LevelsOfDetail {
+public class LevelOfDetail {
     
     private int level;
     

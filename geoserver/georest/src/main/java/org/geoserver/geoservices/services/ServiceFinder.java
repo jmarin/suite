@@ -2,9 +2,10 @@ package org.geoserver.geoservices.services;
 
 import java.util.Map;
 
-import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.rest.AbstractCatalogFinder;
+import org.geoserver.config.GeoServer;
 import org.geoserver.geoservices.core.ServiceType;
+import org.geoserver.wms.WMS;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.resource.Resource;
@@ -17,8 +18,14 @@ import org.restlet.resource.Resource;
 
 public class ServiceFinder extends AbstractCatalogFinder {
 
-    protected ServiceFinder(Catalog catalog) {
-        super(catalog);
+    private GeoServer geoServer;
+
+    private WMS wms;
+
+    protected ServiceFinder(GeoServer geoServer, WMS wms) {
+        super(geoServer.getCatalog());
+        this.geoServer = geoServer;
+        this.wms = wms;
     }
 
     @Override
@@ -29,7 +36,7 @@ public class ServiceFinder extends AbstractCatalogFinder {
             String serviceType = attributes.get("serviceType").toString();
             switch (ServiceType.valueOf(serviceType)) {
             case MapServer:
-                resource = new MapResource(null, request, response, catalog);
+                resource = new MapResource(null, request, response, geoServer, wms);
                 break;
             case FeatureServer:
                 break;

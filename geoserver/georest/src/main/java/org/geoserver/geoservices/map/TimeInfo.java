@@ -37,5 +37,9 @@ public class TimeInfo {
         this.timeExtent = timeExtents;
         this.timeReference = timeRef;
     }
+
+    public TimeInfo() {
+        // TODO Auto-generated constructor stub
+    }
     
 }

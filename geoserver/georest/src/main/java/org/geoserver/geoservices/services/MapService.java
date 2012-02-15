@@ -6,6 +6,7 @@ import org.geoserver.geoservices.core.AbstractService;
 import org.geoserver.geoservices.core.ServiceType;
 import org.geoserver.geoservices.geometry.Envelope;
 import org.geoserver.geoservices.geometry.SpatialReference;
+import org.geoserver.geoservices.geometry.TestSpatialRef;
 import org.geoserver.geoservices.map.DocumentInfo;
 import org.geoserver.geoservices.map.Layer;
 import org.geoserver.geoservices.map.Table;
@@ -23,9 +24,10 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 @XStreamAlias(value = "")
 public class MapService extends AbstractService {
-
+        
     public MapService(String name) {
         super(name, ServiceType.MapServer);
+        this.mapName = name;
     }
 
     private String serviceDescription;
@@ -61,6 +63,16 @@ public class MapService extends AbstractService {
     private DocumentInfo documentInfo;
 
     private String capabilities;
+    
+    private TestSpatialRef testSpatialRef;
+
+    public TestSpatialRef getTestSpatialRef() {
+        return testSpatialRef;
+    }
+
+    public void setTestSpatialRef(TestSpatialRef testSpatialRef) {
+        this.testSpatialRef = testSpatialRef;
+    }
 
     public String getMapName() {
         return mapName;
