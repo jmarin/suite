@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.measure.unit.Unit;
+
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
@@ -31,6 +33,10 @@ import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.extent.GeographicExtent;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.GeodeticCRS;
+import org.opengis.referencing.crs.GeographicCRS;
+import org.opengis.referencing.crs.ProjectedCRS;
+import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -55,7 +61,7 @@ public class MapResource extends ReflectiveResource {
      * logger
      */
 
-    static Logger LOGGER = Logging.getLogger("org.geoserver.geoservices.catalog");
+    static Logger LOGGER = Logging.getLogger("org.geoserver.geoservices.map");
 
     public MapResource(Context context, Request request, Response response, GeoServer geoServer,
             WMS wms) {
@@ -146,7 +152,7 @@ public class MapResource extends ReflectiveResource {
                         mapService.setTimeInfo(new TimeInfo());
                         mapService.setDocumentInfo(new DocumentInfo());
                         // TODO: get Map Units dynamically
-                        mapService.setUnits(Units.DecimalDegrees.toString());
+                        mapService.setUnits(getDefaultMapUnits(layerGroupInfo));
                         mapService.setSupportedImageFormatTypes(getImageOutputFormats());
                         response = mapService;
                         break;
@@ -169,6 +175,24 @@ public class MapResource extends ReflectiveResource {
         }
         return response;
 
+    }
+
+    private String getDefaultMapUnits(LayerGroupInfo layerGroupInfo) {
+        if (layerGroupInfo.getLayers().size() > 0) {
+            LayerInfo firstLayer = layerGroupInfo.getLayers().get(0);
+            CoordinateReferenceSystem crs = firstLayer.getResource().getCRS();
+            if (crs instanceof GeographicCRS || crs instanceof GeodeticCRS) {
+                return "DecimalDegrees";
+            } else if (crs instanceof ProjectedCRS){
+                return crs.getCoordinateSystem()
+                        .getAxis(crs.getCoordinateSystem().getDimension() - 1).getUnit().toString();
+            } else {
+                return "";
+            }
+
+        } else {
+            return "";
+        }
     }
 
     private String getImageOutputFormats() {
