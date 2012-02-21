@@ -8,10 +8,7 @@ import java.util.logging.Logger;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
-import org.geoserver.catalog.MapInfo;
 import org.geoserver.config.GeoServer;
-import org.geoserver.config.GeoServerInfo;
-import org.geoserver.config.ServiceInfo;
 import org.geoserver.geoservices.exception.ServiceError;
 import org.geoserver.geoservices.exception.ServiceException;
 import org.geoserver.geoservices.geometry.Envelope;
@@ -150,15 +147,7 @@ public class MapResource extends ReflectiveResource {
                         mapService.setDocumentInfo(new DocumentInfo());
                         // TODO: get Map Units dynamically
                         mapService.setUnits(Units.DecimalDegrees.toString());
-
-                        Collection<GetMapOutputFormat> formats = wms.getAvailableMapFormats();
-                        String supportedFormats = "";
-                        for (GetMapOutputFormat of : formats) {
-                            String format = of.getMimeType();
-                            supportedFormats += "," + format;
-                        }
-                        
-                        mapService.setSupportedImageFormatTypes(supportedFormats);
+                        mapService.setSupportedImageFormatTypes(getImageOutputFormats());
                         response = mapService;
                         break;
                     } else {
@@ -180,6 +169,44 @@ public class MapResource extends ReflectiveResource {
         }
         return response;
 
+    }
+
+    private String getImageOutputFormats() {
+        Collection<GetMapOutputFormat> formats = wms.getAvailableMapFormats();
+        ArrayList<String> supportedFormats = new ArrayList<String>();
+        for (GetMapOutputFormat of : formats) {
+            String format = of.getMimeType();
+            if (format.equals("image/png")) {
+                supportedFormats.add("PNG");
+            } else if (format.equals("image/png; mode=8bit")) {
+                supportedFormats.add("PNG8");
+            } else if (format.equals("image/png; mode=24bit")) {
+                supportedFormats.add("PNG24");
+            } else if (format.equals("image/png; mode=32bit")) {
+                supportedFormats.add("PNG32");
+            } else if (format.equals("image/tiff")) {
+                supportedFormats.add("TIFF");
+            } else if (format.equals("image/tiff8")) {
+                supportedFormats.add("TIFF8");
+            } else if (format.equals("image/geotiff")) {
+                supportedFormats.add("GEOTIFF");
+            } else if (format.equals("image/geotiff8")) {
+                supportedFormats.add("GEOTIFF8");
+            } else if (format.equals("image/gif")) {
+                supportedFormats.add("GIF");
+            } else if (format.equals("image/jpeg")) {
+                supportedFormats.add("JPG");
+            } else if (format.equals("application/pdf")) {
+                supportedFormats.add("PDF");
+            } else if (format.equals("image/svg+xml")) {
+                supportedFormats.add("SVG");
+            }
+        }
+        String listOfSupportedFormats = supportedFormats.get(0);
+        for (int i = 1; i < supportedFormats.size(); i++) {
+            listOfSupportedFormats += "," + supportedFormats.get(i);
+        }
+        return listOfSupportedFormats;
     }
 
     @Override
