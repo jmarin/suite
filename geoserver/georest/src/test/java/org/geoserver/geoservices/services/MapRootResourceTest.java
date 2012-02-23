@@ -1,6 +1,5 @@
 package org.geoserver.geoservices.services;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,45 +12,16 @@ import net.sf.json.JSONObject;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
-import org.geoserver.catalog.Catalog;
-import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
-import org.geoserver.test.GeoServerTestSupport;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 
 /**
  * 
  * @author Juan Marin, OpenGeo
  * 
  */
-public class MapRootResourceTest extends ResourceTest {
+public class MapRootResourceTest extends MapResourceTest {
 
-    protected Catalog catalog;
-
-    private LayerGroupInfo layerGroup;
-
-    @Override
-    protected void setUpInternal() throws Exception {
-        super.setUpInternal();
-        catalog = getCatalog();
-        layerGroup = catalog.getFactory().createLayerGroup();
-        layerGroup.setName("SanFrancisco");
-        layerGroup.getLayers().add(catalog.getLayerByName("Bridges"));
-        layerGroup.getLayers().add(catalog.getLayerByName("Buildings"));
-        layerGroup.getLayers().add(catalog.getLayerByName("Forests"));
-        layerGroup.getLayers().add(catalog.getLayerByName("Lakes"));
-        layerGroup.getLayers().add(catalog.getLayerByName("Ponds"));
-        layerGroup.getLayers().add(catalog.getLayerByName("Streams"));
-        ReferencedEnvelope envelope = layerGroup.getLayers().get(0).getResource().boundingBox();
-        layerGroup.setBounds(envelope);
-        catalog.add(layerGroup);
-    }
-
-    @Override
-    protected void tearDownInternal() throws Exception {
-        super.tearDownInternal();
-        catalog.remove(layerGroup);
-    }
+   
 
     /**
      * Req. 1: The Map Service Root resource SHALL accept requests that conform to the URI template in Table 3 and use any HTTP method identified in
