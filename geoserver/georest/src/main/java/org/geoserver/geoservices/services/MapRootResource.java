@@ -47,7 +47,7 @@ import org.restlet.data.Status;
  * @author Juan Marin, OpenGeo
  * 
  */
-public class MapResource extends ReflectiveResource {
+public class MapRootResource extends ReflectiveResource {
 
     protected Catalog catalog;
 
@@ -63,7 +63,7 @@ public class MapResource extends ReflectiveResource {
 
     static Logger LOGGER = Logging.getLogger("org.geoserver.geoservices.map");
 
-    public MapResource(Context context, Request request, Response response, GeoServer geoServer,
+    public MapRootResource(Context context, Request request, Response response, GeoServer geoServer,
             WMS wms) {
         super(context, request, response);
         this.catalog = geoServer.getCatalog();

@@ -36,7 +36,7 @@ public class ServiceFinder extends AbstractCatalogFinder {
             String serviceType = attributes.get("serviceType").toString();
             switch (ServiceType.valueOf(serviceType)) {
             case MapServer:
-                resource = new MapResource(null, request, response, geoServer, wms);
+                resource = new MapRootResource(null, request, response, geoServer, wms);
                 break;
             case FeatureServer:
                 break;
