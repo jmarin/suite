@@ -9,17 +9,11 @@ import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.geoservices.core.AbstractService;
 import org.geoserver.geoservices.exception.ServiceError;
 import org.geoserver.geoservices.exception.ServiceException;
-import org.geoserver.geoservices.rest.format.GeoRestReflectiveJSONFormat;
-import org.geoserver.rest.ReflectiveResource;
-import org.geoserver.rest.format.DataFormat;
-import org.geoserver.rest.format.ReflectiveJSONFormat;
 import org.geotools.util.logging.Logging;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-
-import com.thoughtworks.xstream.XStream;
 
 /**
  * 
@@ -27,7 +21,7 @@ import com.thoughtworks.xstream.XStream;
  * 
  */
 
-public class CatalogResource extends ReflectiveResource {
+public class CatalogResource extends GeoServicesResource {
 
     /**
      * logger
@@ -55,26 +49,6 @@ public class CatalogResource extends ReflectiveResource {
         this.catalog = catalog;
         this.formatValue = getRequest().getResourceRef().getQueryAsForm().getFirstValue("f");
         this.callback = getRequest().getResourceRef().getQueryAsForm().getFirstValue("callback");
-    }
-
-    @Override
-    protected List<DataFormat> createSupportedFormats(Request request, Response response) {
-        List<DataFormat> formats = new ArrayList<DataFormat>();
-        // formats.add(createHTMLFormat(request,response));
-        // formats.add(createXMLFormat(request,response) );
-        formats.add(createJSONFormat(request, response));
-        return formats;
-    }
-
-    @Override
-    protected DataFormat getFormatGet() {
-        DataFormat df = super.getFormatGet();
-        if (df != null) {
-            return df;
-        } else {
-            GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
-            return format;
-        }
     }
 
     @Override
@@ -113,22 +87,6 @@ public class CatalogResource extends ReflectiveResource {
                     details));
 
         }
-
-    }
-
-    @Override
-    protected ReflectiveJSONFormat createJSONFormat(Request request, Response response) {
-        GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
-        configureXStream(format.getXStream());
-        return format;
-    }
-
-    @Override
-    protected void configureXStream(XStream xstream) {
-        xstream.processAnnotations(CatalogService.class);
-        xstream.processAnnotations(ServiceException.class);
-        xstream.processAnnotations(ServiceError.class);
-        // xstream.registerConverter(new CatalogServiceConverter());
 
     }
 

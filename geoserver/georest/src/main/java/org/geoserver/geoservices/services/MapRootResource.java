@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.measure.unit.Unit;
-
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
@@ -20,11 +18,6 @@ import org.geoserver.geoservices.map.Layer;
 import org.geoserver.geoservices.map.Table;
 import org.geoserver.geoservices.map.TileInfo;
 import org.geoserver.geoservices.map.TimeInfo;
-import org.geoserver.geoservices.map.Units;
-import org.geoserver.geoservices.rest.format.GeoRestReflectiveJSONFormat;
-import org.geoserver.rest.ReflectiveResource;
-import org.geoserver.rest.format.DataFormat;
-import org.geoserver.rest.format.ReflectiveJSONFormat;
 import org.geoserver.wms.GetMapOutputFormat;
 import org.geoserver.wms.WMS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -36,7 +29,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.GeodeticCRS;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.crs.ProjectedCRS;
-import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -47,7 +39,7 @@ import org.restlet.data.Status;
  * @author Juan Marin, OpenGeo
  * 
  */
-public class MapRootResource extends ReflectiveResource {
+public class MapRootResource extends GeoServicesResource {
 
     protected Catalog catalog;
 
@@ -63,33 +55,13 @@ public class MapRootResource extends ReflectiveResource {
 
     static Logger LOGGER = Logging.getLogger("org.geoserver.geoservices.map");
 
-    public MapRootResource(Context context, Request request, Response response, GeoServer geoServer,
-            WMS wms) {
+    public MapRootResource(Context context, Request request, Response response,
+            GeoServer geoServer, WMS wms) {
         super(context, request, response);
         this.catalog = geoServer.getCatalog();
         this.formatValue = getRequest().getResourceRef().getQueryAsForm().getFirstValue("f");
         this.callback = getRequest().getResourceRef().getQueryAsForm().getFirstValue("callback");
         this.wms = wms;
-    }
-
-    @Override
-    protected List<DataFormat> createSupportedFormats(Request request, Response response) {
-        List<DataFormat> formats = new ArrayList<DataFormat>();
-        // formats.add(createHTMLFormat(request,response));
-        // formats.add(createXMLFormat(request,response) );
-        formats.add(createJSONFormat(request, response));
-        return formats;
-    }
-
-    @Override
-    protected DataFormat getFormatGet() {
-        DataFormat df = super.getFormatGet();
-        if (df != null) {
-            return df;
-        } else {
-            GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
-            return format;
-        }
     }
 
     @Override
@@ -183,7 +155,7 @@ public class MapRootResource extends ReflectiveResource {
             CoordinateReferenceSystem crs = firstLayer.getResource().getCRS();
             if (crs instanceof GeographicCRS || crs instanceof GeodeticCRS) {
                 return "DecimalDegrees";
-            } else if (crs instanceof ProjectedCRS){
+            } else if (crs instanceof ProjectedCRS) {
                 return crs.getCoordinateSystem()
                         .getAxis(crs.getCoordinateSystem().getDimension() - 1).getUnit().toString();
             } else {
@@ -231,13 +203,6 @@ public class MapRootResource extends ReflectiveResource {
             listOfSupportedFormats += "," + supportedFormats.get(i);
         }
         return listOfSupportedFormats;
-    }
-
-    @Override
-    protected ReflectiveJSONFormat createJSONFormat(Request request, Response response) {
-        GeoRestReflectiveJSONFormat format = new GeoRestReflectiveJSONFormat();
-        configureXStream(format.getXStream());
-        return format;
     }
 
 }
