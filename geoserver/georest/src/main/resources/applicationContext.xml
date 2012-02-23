@@ -56,6 +56,19 @@
 					</key>
 					<value>serviceFinder</value>
 				</entry>
+				<entry>
+					<key>
+						<value>/services/{serviceName}/{serviceType}/{operation}?</value>
+					</key>
+					<value>serviceFinder</value>
+				</entry>
+				<entry>
+					<key>
+						<value>/services/{serviceName}/{serviceType}/{operation}/?</value>
+					</key>
+					<value>serviceFinder</value>
+				</entry>
+				
 			</map>
 		</property>
 	</bean>
