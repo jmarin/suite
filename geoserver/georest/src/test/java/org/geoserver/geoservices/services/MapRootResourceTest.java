@@ -1,5 +1,11 @@
 package org.geoserver.geoservices.services;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
+
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -139,31 +145,96 @@ public class MapRootResourceTest extends ResourceTest {
         assertEquals("integer", tablesItemsProperties.get("id").get("type").getTextValue());
         assertEquals("string", tablesItemsProperties.get("name").get("type").getTextValue());
         assertEquals("boolean", properties.get("singleFusedMapCache").get("type").getTextValue());
-        //TileInfo schema
+        // TileInfo schema
         JsonNode tileInfo = properties.get("tileInfo");
         assertEquals("object", tileInfo.get("type").getTextValue());
         assertEquals("integer", tileInfo.get("properties").get("rows").get("type").getTextValue());
         assertEquals("integer", tileInfo.get("properties").get("cols").get("type").getTextValue());
         assertEquals("integer", tileInfo.get("properties").get("dpi").get("type").getTextValue());
         assertEquals("string", tileInfo.get("properties").get("format").get("type").getTextValue());
-        assertEquals("number", tileInfo.get("properties").get("compressionQuality").get("type").getTextValue());
+        assertEquals("number", tileInfo.get("properties").get("compressionQuality").get("type")
+                .getTextValue());
         assertEquals("array", tileInfo.get("properties").get("lods").get("type").getTextValue());
-        assertEquals("object", tileInfo.get("properties").get("lods").get("items").get("type").getTextValue());
-        assertEquals("integer", tileInfo.get("properties").get("lods").get("items").get("properties").get("level").get("type").getTextValue());
-        assertEquals("number", tileInfo.get("properties").get("lods").get("items").get("properties").get("resolution").get("type").getTextValue());
-        assertEquals("number", tileInfo.get("properties").get("lods").get("items").get("properties").get("scale").get("type").getTextValue());
-        //TimeInfo schema
+        assertEquals("object", tileInfo.get("properties").get("lods").get("items").get("type")
+                .getTextValue());
+        assertEquals("integer",
+                tileInfo.get("properties").get("lods").get("items").get("properties").get("level")
+                        .get("type").getTextValue());
+        assertEquals("number", tileInfo.get("properties").get("lods").get("items")
+                .get("properties").get("resolution").get("type").getTextValue());
+        assertEquals("number", tileInfo.get("properties").get("lods").get("items")
+                .get("properties").get("scale").get("type").getTextValue());
+        // TimeInfo schema
         JsonNode timeInfo = properties.get("timeInfo");
         assertEquals("object", timeInfo.get("type").getTextValue());
-        assertEquals("array", timeInfo.get("properties").get("timeExtent").get("type").getTextValue());
-        assertEquals("object", timeInfo.get("properties").get("timeReference").get("type").getTextValue());
-        assertEquals("string", timeInfo.get("properties").get("timeReference").get("properties").get("timeZone").get("type").getTextValue());
-        assertEquals("boolean", timeInfo.get("properties").get("timeReference").get("properties").get("respectDaylightSaving").get("type").getTextValue());
-        assertEquals("string",properties.get("units").get("type").getTextValue());
-        assertEquals("string",properties.get("supportedImageFormatTypes").get("type").getTextValue());
-        assertEquals("object",properties.get("documentInfo").get("type").getTextValue());
-        assertEquals("string",properties.get("capabilities").get("type").getTextValue());
+        assertEquals("array", timeInfo.get("properties").get("timeExtent").get("type")
+                .getTextValue());
+        assertEquals("object", timeInfo.get("properties").get("timeReference").get("type")
+                .getTextValue());
+        assertEquals("string", timeInfo.get("properties").get("timeReference").get("properties")
+                .get("timeZone").get("type").getTextValue());
+        assertEquals("boolean", timeInfo.get("properties").get("timeReference").get("properties")
+                .get("respectDaylightSaving").get("type").getTextValue());
+        assertEquals("string", properties.get("units").get("type").getTextValue());
+        assertEquals("string", properties.get("supportedImageFormatTypes").get("type")
+                .getTextValue());
+        assertEquals("object", properties.get("documentInfo").get("type").getTextValue());
+        assertEquals("string", properties.get("capabilities").get("type").getTextValue());
 
+    }
+
+    /**
+     * GeoServices REST Map Service DRAFT 4 Req. 5: Each layer or table id in the JSON representation of a Map Service Root resource SHALL be unique
+     * within the map service.
+     */
+
+    public void testUniqueLayerNamesInMapService() {
+        List<LayerInfo> layers = layerGroup.getLayers();
+        Set<LayerInfo> layerSet = new HashSet<LayerInfo>(layers);
+        assertEquals(layers.size(), layerSet.size());
+    }
+
+    /**
+     * GeoServices REST Map Service DRAFT 4 Req. 9: The supportedImageFormatTypes property in the JSON representation of a Map Service Root resource
+     * SHALL include the value "PNG".
+     * 
+     * @throws Exception
+     */
+    public void testPNGFormatExists() throws Exception {
+        boolean hasPNG = false;
+        JSON json = getAsJSON("/rest/services/SanFrancisco/MapServer?f=json");
+        JSONObject jsonObject = (JSONObject) json;
+        String supportedFormats = (String) jsonObject.get("supportedImageFormatTypes");
+        StringTokenizer tokenizer = new StringTokenizer(supportedFormats, ",");
+        while (tokenizer.hasMoreTokens()) {
+            if (tokenizer.nextToken().equals("PNG")) {
+                hasPNG = true;
+                break;
+            }
+        }
+        assertTrue(hasPNG);
+
+    }
+
+    /**
+     * GeoServices REST Map Service DRAFT 4 Req 11: The capabilities property in the JSON representation of a Map Service Root resource SHALL be a
+     * comma separated list and include the value "Map".
+     * 
+     * @throws Exception
+     */
+    public void testCapabilities() throws Exception {
+        boolean hasMapCapabilities = false;
+        JSON json = getAsJSON("/rest/services/SanFrancisco/MapServer?f=json");
+        JSONObject jsonObject = (JSONObject) json;
+        String capabilities = (String) jsonObject.get("capabilities");
+        StringTokenizer tokenizer = new StringTokenizer(capabilities, ",");
+        while (tokenizer.hasMoreTokens()) {
+            if (tokenizer.nextToken().equals("Map")) {
+                hasMapCapabilities = true;
+                break;
+            }
+        }
+        assertTrue(hasMapCapabilities);
     }
 
 }
