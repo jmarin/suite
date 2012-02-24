@@ -21,11 +21,10 @@ import org.geoserver.catalog.LayerInfo;
  */
 public class MapRootResourceTest extends MapResourceTest {
 
-   
-
     /**
-     * Req. 1: The Map Service Root resource SHALL accept requests that conform to the URI template in Table 3 and use any HTTP method identified in
-     * the same table (GET) Req. 2: The Map Service Root resource SHALL support all parameters and values specified in Table 4 (f=json)
+     * GeoServices REST Map Service DRAFT 4 Req. 1: The Map Service Root resource SHALL accept requests that conform to the URI template in Table 3
+     * and use any HTTP method identified in the same table (GET) Req. 2: The Map Service Root resource SHALL support all parameters and values
+     * specified in Table 4 (f=json)
      * 
      * @throws Exception
      * 
