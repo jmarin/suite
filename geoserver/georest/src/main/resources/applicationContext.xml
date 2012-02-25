@@ -58,13 +58,13 @@
 				</entry>
 				<entry>
 					<key>
-						<value>/services/{serviceName}/{serviceType}/{operation}?</value>
+						<value>/services/{serviceName}/{serviceType}/{operation}?{params}</value>
 					</key>
 					<value>serviceFinder</value>
 				</entry>
 				<entry>
 					<key>
-						<value>/services/{serviceName}/{serviceType}/{operation}/?</value>
+						<value>/services/{serviceName}/{serviceType}/{operation}/?{params}</value>
 					</key>
 					<value>serviceFinder</value>
 				</entry>

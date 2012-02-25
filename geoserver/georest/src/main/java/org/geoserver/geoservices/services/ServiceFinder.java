@@ -1,10 +1,16 @@
 package org.geoserver.geoservices.services;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.geoserver.catalog.rest.AbstractCatalogFinder;
 import org.geoserver.config.GeoServer;
 import org.geoserver.geoservices.core.ServiceType;
+import org.geoserver.geoservices.exception.ServiceError;
+import org.geoserver.geoservices.exception.ServiceException;
 import org.geoserver.wms.WMS;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -35,6 +41,9 @@ public class ServiceFinder extends AbstractCatalogFinder {
             Map<String, Object> attributes = request.getAttributes();
             String serviceType = attributes.get("serviceType").toString();
             String operation = "";
+            String params = attributes.get("params").toString();
+            Map<String, String> paramsMap = getParamsMap(params);
+            String format = paramsMap.get("f");
             if (attributes.get("operation") != null) {
                 operation = attributes.get("operation").toString();
             }
@@ -43,7 +52,13 @@ public class ServiceFinder extends AbstractCatalogFinder {
                 if (operation.equals("")) {
                     resource = new MapRootResource(null, request, response, geoServer, wms);
                 } else if (operation.equals("export")) {
-                    resource = new ExportMapResource(null, request, response, geoServer, wms);
+                    if (format.equals("json")) {
+                        resource = new ExportMapJsonResource(null, request, response, geoServer,
+                                wms);
+                    } else if (format.equals("image")) {
+                        resource = new ExportMapImageResource(null, request, response, geoServer,
+                                wms);
+                    }
                 }
                 break;
             case FeatureServer:
@@ -67,11 +82,19 @@ public class ServiceFinder extends AbstractCatalogFinder {
             return resource;
         } catch (Exception e) {
             return null;
-            // return new ServiceException(new ServiceError(
-            // (String.valueOf(Status.CLIENT_ERROR_BAD_REQUEST.getCode())), "Bad Request",
-            // details));
         }
-
     }
 
+    private Map<String, String> getParamsMap(String params) {
+        Map<String, String> paramsMap = new HashMap<String, String>();
+        StringTokenizer tokenizer = new StringTokenizer(params, "&");
+        while (tokenizer.hasMoreTokens()) {
+            String str = tokenizer.nextToken();
+            StringTokenizer tokenizer2 = new StringTokenizer(str, "=");
+            while (tokenizer2.hasMoreTokens()) {
+                paramsMap.put(tokenizer2.nextToken(), tokenizer2.nextToken());
+            }
+        }
+        return paramsMap;
+    }
 }
