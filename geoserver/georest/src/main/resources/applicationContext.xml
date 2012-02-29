@@ -7,11 +7,6 @@
     http://www.springframework.org/schema/tx/spring-tx.xsd"
 	default-autowire="byName">
 
-
-	<bean id="catalogServiceFinder" class="org.geoserver.geoservices.services.CatalogServiceFinder">
-		<constructor-arg ref="catalog" />
-	</bean>
-
 	<bean id="serviceFinder" class="org.geoserver.geoservices.services.ServiceFinder">
 		<constructor-arg ref="geoServer" />
 		<constructor-arg ref="wms"></constructor-arg>
@@ -22,37 +17,37 @@
 			<map>
 				<entry>
 					<key>
-						<value>/services?</value>
-					</key>
-					<value>catalogServiceFinder</value>
-				</entry>
-				<entry>
-					<key>
-						<value>/services/?</value>
-					</key>
-					<value>catalogServiceFinder</value>
-				</entry>
-				<entry>
-					<key>
-						<value>/services/{folder}?</value>
-					</key>
-					<value>catalogServiceFinder</value>
-				</entry>
-				<entry>
-					<key>
-						<value>/services/{folder}/?</value>
-					</key>
-					<value>catalogServiceFinder</value>
-				</entry>
-				<entry>
-					<key>
-						<value>/services/{serviceName}/{serviceType}?</value>
+						<value>/services?{params}</value>
 					</key>
 					<value>serviceFinder</value>
 				</entry>
 				<entry>
 					<key>
-						<value>/services/{serviceName}/{serviceType}/?</value>
+						<value>/services/?{params}</value>
+					</key>
+					<value>serviceFinder</value>
+				</entry>
+				<entry>
+					<key>
+						<value>/services/{folder}?{params}</value>
+					</key>
+					<value>serviceFinder</value>
+				</entry>
+				<entry>
+					<key>
+						<value>/services/{folder}/?{params}</value>
+					</key>
+					<value>serviceFinder</value>
+				</entry>
+				<entry>
+					<key>
+						<value>/services/{serviceName}/{serviceType}?{params}</value>
+					</key>
+					<value>serviceFinder</value>
+				</entry>
+				<entry>
+					<key>
+						<value>/services/{serviceName}/{serviceType}/?{params}</value>
 					</key>
 					<value>serviceFinder</value>
 				</entry>

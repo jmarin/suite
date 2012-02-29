@@ -39,7 +39,10 @@ public class ServiceFinder extends AbstractCatalogFinder {
         try {
             Resource resource = null;
             Map<String, Object> attributes = request.getAttributes();
-            String serviceType = attributes.get("serviceType").toString();
+            String serviceType = "CatalogServer";
+            if (attributes.get("serviceType") != null) {
+                serviceType = attributes.get("serviceType").toString();
+            }
             String operation = "";
             String params = attributes.get("params").toString();
             Map<String, String> paramsMap = getParamsMap(params);
@@ -48,6 +51,9 @@ public class ServiceFinder extends AbstractCatalogFinder {
                 operation = attributes.get("operation").toString();
             }
             switch (ServiceType.valueOf(serviceType)) {
+            case CatalogServer:
+                resource = new CatalogResource(null, request, response, catalog);
+                break;
             case MapServer:
                 if (operation.equals("")) {
                     resource = new MapRootResource(null, request, response, geoServer, wms);
