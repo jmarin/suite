@@ -10,6 +10,7 @@
 	<bean id="serviceFinder" class="org.geoserver.geoservices.services.ServiceFinder">
 		<constructor-arg ref="geoServer" />
 		<constructor-arg ref="wms"></constructor-arg>
+		<constructor-arg ref="dispatcher"></constructor-arg>
 	</bean>
 
 	<bean id="restMapping" class="org.geoserver.rest.RESTMapping">

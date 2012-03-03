@@ -1,17 +1,16 @@
 package org.geoserver.geoservices.services;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.geoserver.catalog.rest.AbstractCatalogFinder;
 import org.geoserver.config.GeoServer;
 import org.geoserver.geoservices.core.ServiceType;
-import org.geoserver.geoservices.exception.ServiceError;
-import org.geoserver.geoservices.exception.ServiceException;
+import org.geoserver.ows.Dispatcher;
+import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.wms.WMS;
+import org.geoserver.wms.WebMapService;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.resource.Resource;
@@ -28,10 +27,13 @@ public class ServiceFinder extends AbstractCatalogFinder {
 
     private WMS wms;
 
-    protected ServiceFinder(GeoServer geoServer, WMS wms) {
+    private Dispatcher dispatcher;
+
+    protected ServiceFinder(GeoServer geoServer, WMS wms, Dispatcher dispatcher) {
         super(geoServer.getCatalog());
         this.geoServer = geoServer;
         this.wms = wms;
+        this.dispatcher = dispatcher;
     }
 
     @Override
@@ -62,8 +64,12 @@ public class ServiceFinder extends AbstractCatalogFinder {
                         resource = new ExportMapJsonResource(null, request, response, geoServer,
                                 wms);
                     } else if (format.equals("image")) {
-                        resource = new ExportMapImageResource(null, request, response, geoServer,
-                                wms);
+                        // resource = new ExportMapImageResource(null, request, response, geoServer,
+                        // wms, dispatcher);
+                        WebMapService webMapService = (WebMapService) GeoServerExtensions
+                                .bean("wmsServiceTarget");
+                        resource = new ExportMapImageResource(null, request, response, paramsMap,
+                                geoServer, wms, webMapService);
                     }
                 }
                 break;
