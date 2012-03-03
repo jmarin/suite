@@ -1,8 +1,19 @@
 package org.geoserver.geoservices.services;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+
+import javax.imageio.ImageIO;
+
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+
+import com.mockrunner.mock.web.MockHttpServletResponse;
+import com.mockrunner.mock.web.MockServletOutputStream;
 
 public class MapResourceTest extends ResourceTest {
 
@@ -32,4 +43,11 @@ public class MapResourceTest extends ResourceTest {
         super.tearDownInternal();
         catalog.remove(layerGroup);
     }
+
+    protected BufferedImage getAsImage(String path, String mime) throws Exception {
+        MockHttpServletResponse resp = getAsServletResponse(path);
+        InputStream is = getBinaryInputStream(resp);
+        return ImageIO.read(is);
+    }
+
 }

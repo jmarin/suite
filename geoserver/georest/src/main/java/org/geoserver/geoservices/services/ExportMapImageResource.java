@@ -24,10 +24,16 @@ import org.geoserver.wms.map.PNGMapResponse;
 import org.geoserver.wms.map.RenderedImageMap;
 import org.geoserver.wms.map.RenderedImageMapResponse;
 import org.restlet.Context;
+import org.restlet.data.CharacterSet;
+import org.restlet.data.Form;
+import org.restlet.data.MediaType;
 import org.restlet.data.Reference;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
+import org.restlet.resource.StringRepresentation;
+import org.restlet.resource.Variant;
 
 import com.noelios.restlet.http.HttpResponse;
 
@@ -41,6 +47,8 @@ public class ExportMapImageResource extends Resource {
 
     private WebMapService webMapService;
 
+    private String mediaType;
+
     public ExportMapImageResource(Context context, Request request, Response response,
             Map<String, String> paramsMap, GeoServer geoServer, WMS wms, WebMapService webMapService) {
         this.setContext(context);
@@ -53,9 +61,21 @@ public class ExportMapImageResource extends Resource {
     }
 
     @Override
+    public Representation getRepresentation(Variant variant) {
+        Representation result = null;
+        MediaType mediaType = variant.getMediaType();
+        if (mediaType.equals(MediaType.IMAGE_PNG)) {
+            result = new StringRepresentation("", MediaType.valueOf(this.mediaType));
+        }
+        return result;
+
+    }
+
+    @Override
     public void handleGet() {
         String wmsUrl = getWMSUrl();
         Map<String, String> rawMap = KvpUtils.parseQueryString(wmsUrl);
+        this.mediaType = rawMap.get("format");
         GetMapKvpRequestReader mapKvpReader = new GetMapKvpRequestReader(wms);
         try {
             GetMapRequest mapRequest = mapKvpReader.createRequest();
@@ -66,7 +86,7 @@ public class ExportMapImageResource extends Resource {
             RenderedImageMapResponse mapResponse = getMapResponse(webMap.getMimeType());
             Service service = (Service) GeoServerExtensions.bean("wms-1_3_0-ServiceDescriptor");
             Operation operation = new Operation("GetMap", service, null, null);
-            HttpResponse httpResponse = (HttpResponse) getResponse();
+            HttpResponse httpResponse = (HttpResponse) getResponse();                        
             OutputStream out = httpResponse.getHttpCall().getResponseStream();
             mapResponse.write(webMap, out, operation);
         } catch (Exception e) {

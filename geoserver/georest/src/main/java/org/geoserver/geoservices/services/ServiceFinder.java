@@ -64,8 +64,6 @@ public class ServiceFinder extends AbstractCatalogFinder {
                         resource = new ExportMapJsonResource(null, request, response, geoServer,
                                 wms);
                     } else if (format.equals("image")) {
-                        // resource = new ExportMapImageResource(null, request, response, geoServer,
-                        // wms, dispatcher);
                         WebMapService webMapService = (WebMapService) GeoServerExtensions
                                 .bean("wmsServiceTarget");
                         resource = new ExportMapImageResource(null, request, response, paramsMap,

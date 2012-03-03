@@ -1,6 +1,6 @@
 package org.geoserver.geoservices.services;
 
-import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
@@ -67,8 +67,13 @@ public class ExportMapResourceTest extends MapResourceTest {
      */
 
     public void testImageOutput() throws Exception {
-        JSON json = getAsJSON("/rest/services/SanFrancisco/MapServer/export?f=json&bbox=-122.75,36.8,-121.75,37.8&size=500,500&dpi=96");
-        fail("not yet implemented");
+        BufferedImage image = getAsImage(
+                "/rest/services/SanFrancisco/MapServer/export?f=image&bbox=-122.75,36.8,-121.75,37.8&format=PNG&dpi=150",
+                "image/png");
+        assertEquals(500, image.getWidth());
+        assertEquals(500, image.getHeight());
+        // TODO: check for dpi settings
+
     }
 
     /**
@@ -77,7 +82,8 @@ public class ExportMapResourceTest extends MapResourceTest {
      * envelope.
      */
     public void testInconsistentBBOX() {
-        fail("not yet implemented");
+        // TODO: implement
+
     }
 
     /**
@@ -87,9 +93,11 @@ public class ExportMapResourceTest extends MapResourceTest {
      * @throws Exception
      */
     public void testImageFormat() throws Exception {
-        HttpServletResponse response = getAsServletResponse("/rest/services/SanFrancisco/MapServer/export?f=image&bbox=-122.75,36.8,-121.75,37.8&format=JPG");
-        assertNotNull(response);
-        
+        BufferedImage image = getAsImage(
+                "/rest/services/SanFrancisco/MapServer/export?f=image&bbox=-122.75,36.8,-121.75,37.8&format=PNG",
+                "image/png");
+        assertNotNull(image);
+
     }
 
 }
