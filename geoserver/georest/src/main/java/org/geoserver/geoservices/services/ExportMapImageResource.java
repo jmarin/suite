@@ -27,6 +27,7 @@ import org.geoserver.wms.map.PNGMapResponse;
 import org.geoserver.wms.map.RenderedImageMap;
 import org.geoserver.wms.map.RenderedImageMapResponse;
 import org.geoserver.wms.map.TIFFMapResponse;
+import org.geoserver.wms.svg.SVGBatikMapResponse;
 import org.restlet.Context;
 import org.restlet.data.CharacterSet;
 import org.restlet.data.Form;
@@ -104,17 +105,18 @@ public class ExportMapImageResource extends Resource {
     }
 
     private AbstractMapResponse getMapResponse(String mimeType) {
-        RenderedImageMapResponse mapResponse = null;
+        AbstractMapResponse mapResponse = null;
         if (mimeType.equals("image/png")) {
-            return new PNGMapResponse(wms);
+            mapResponse = new PNGMapResponse(wms);
         } else if (mimeType.equals("image/jpeg")) {
-            return new JPEGMapResponse(wms);
+            mapResponse = new JPEGMapResponse(wms);
         } else if (mimeType.equals("image/tiff")) {
-            return new TIFFMapResponse(wms);
+            mapResponse = new TIFFMapResponse(wms);
         } else if (mimeType.equals("application/pdf")) {
-            return new PDFMapResponse(wms);
+            mapResponse = new PDFMapResponse(wms);
+        } else if (mimeType.equals("image/svg+xml")) {
+            mapResponse = new SVGBatikMapResponse();
         }
-        // TODO complete rest of Mime types
         return mapResponse;
     }
 
@@ -200,6 +202,8 @@ public class ExportMapImageResource extends Resource {
             return "image/tiff";
         } else if (imageFormat.equals("PDF")) {
             return "application/pdf";
+        } else if (imageFormat.equals("SVG")) {
+            return "image/svg+xml";
         } else {
             return "image/png";
         }
