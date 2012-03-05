@@ -106,7 +106,7 @@ public class ExportMapImageResource extends Resource {
 
     private AbstractMapResponse getMapResponse(String mimeType) {
         AbstractMapResponse mapResponse = null;
-        if (mimeType.equals("image/png")) {
+        if (mimeType.equals("image/png") || mimeType.equals("image/png; mode=8bit")) {
             mapResponse = new PNGMapResponse(wms);
         } else if (mimeType.equals("image/jpeg")) {
             mapResponse = new JPEGMapResponse(wms);
@@ -196,6 +196,8 @@ public class ExportMapImageResource extends Resource {
         String imageFormat = format.toUpperCase();
         if (imageFormat.equals("PNG")) {
             return "image/png";
+        } else if (imageFormat.equals("PNG8")) {
+            return "image/png8";
         } else if (imageFormat.equals("JPG")) {
             return "image/jpeg";
         } else if (imageFormat.equals("TIF")) {
