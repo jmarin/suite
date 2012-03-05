@@ -102,7 +102,11 @@ public class ServiceFinder extends AbstractCatalogFinder {
             String str = tokenizer.nextToken();
             StringTokenizer tokenizer2 = new StringTokenizer(str, "=");
             while (tokenizer2.hasMoreTokens()) {
-                paramsMap.put(tokenizer2.nextToken(), tokenizer2.nextToken());
+                if (tokenizer2.countTokens() == 2) {
+                    paramsMap.put(tokenizer2.nextToken(), tokenizer2.nextToken());
+                } else {
+                    tokenizer2.nextToken();
+                }
             }
         }
         return paramsMap;

@@ -19,8 +19,10 @@ import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.WebMap;
 import org.geoserver.wms.WebMapService;
+import org.geoserver.wms.map.AbstractMapResponse;
 import org.geoserver.wms.map.GetMapKvpRequestReader;
 import org.geoserver.wms.map.JPEGMapResponse;
+import org.geoserver.wms.map.PDFMapResponse;
 import org.geoserver.wms.map.PNGMapResponse;
 import org.geoserver.wms.map.RenderedImageMap;
 import org.geoserver.wms.map.RenderedImageMapResponse;
@@ -42,7 +44,7 @@ import com.noelios.restlet.http.HttpResponse;
 /**
  * 
  * @author Juan Marin, OpenGeo
- *
+ * 
  */
 
 public class ExportMapImageResource extends Resource {
@@ -76,7 +78,6 @@ public class ExportMapImageResource extends Resource {
             result = new StringRepresentation("", MediaType.valueOf(this.mediaType));
         }
         return result;
-
     }
 
     @Override
@@ -89,8 +90,7 @@ public class ExportMapImageResource extends Resource {
             mapRequest = mapKvpReader
                     .read(mapRequest, parseMap(rawMap), caseInsensitiveKvp(rawMap));
             WebMap webMap = webMapService.getMap(mapRequest);
-            RenderedImageMap imageMap = (RenderedImageMap) webMap;
-            RenderedImageMapResponse mapResponse = getMapResponse(webMap.getMimeType());
+            AbstractMapResponse mapResponse = getMapResponse(webMap.getMimeType());
             Service service = (Service) GeoServerExtensions.bean("wms-1_3_0-ServiceDescriptor");
             Operation operation = new Operation("GetMap", service, null, null);
             HttpResponse httpResponse = (HttpResponse) getResponse();
@@ -103,7 +103,7 @@ public class ExportMapImageResource extends Resource {
 
     }
 
-    private RenderedImageMapResponse getMapResponse(String mimeType) {
+    private AbstractMapResponse getMapResponse(String mimeType) {
         RenderedImageMapResponse mapResponse = null;
         if (mimeType.equals("image/png")) {
             return new PNGMapResponse(wms);
@@ -111,6 +111,8 @@ public class ExportMapImageResource extends Resource {
             return new JPEGMapResponse(wms);
         } else if (mimeType.equals("image/tiff")) {
             return new TIFFMapResponse(wms);
+        } else if (mimeType.equals("application/pdf")) {
+            return new PDFMapResponse(wms);
         }
         // TODO complete rest of Mime types
         return mapResponse;
@@ -180,8 +182,6 @@ public class ExportMapImageResource extends Resource {
         }
         if (imageFormat == null) {
             imageFormat = "PNG";
-        } else if (imageFormat.equals("JPG")) {
-            imageFormat = "JPG";
         }
         this.mediaType = getMimeTypeFromFormat(imageFormat);
         String wmsUrl = host.toString() + "/geoserver/wms?request=" + operation + "&service="
@@ -198,6 +198,8 @@ public class ExportMapImageResource extends Resource {
             return "image/jpeg";
         } else if (imageFormat.equals("TIF")) {
             return "image/tiff";
+        } else if (imageFormat.equals("PDF")) {
+            return "application/pdf";
         } else {
             return "image/png";
         }
