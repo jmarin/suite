@@ -15,6 +15,12 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import com.mockrunner.mock.web.MockHttpServletResponse;
 import com.mockrunner.mock.web.MockServletOutputStream;
 
+
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
 public class MapResourceTest extends ResourceTest {
 
     protected Catalog catalog;

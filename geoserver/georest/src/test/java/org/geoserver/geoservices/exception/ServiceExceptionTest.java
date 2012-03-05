@@ -8,7 +8,7 @@ import org.geoserver.test.GeoServerTestSupport;
 /**
  * GeoServices REST DRAFT 1 Specification - 7.3 Core Exceptions
  * 
- * @author Juan Marin
+ * @author Juan Marin, OpenGeo
  * 
  */
 

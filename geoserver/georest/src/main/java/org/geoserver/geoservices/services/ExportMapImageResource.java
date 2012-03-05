@@ -39,6 +39,12 @@ import org.restlet.resource.Variant;
 
 import com.noelios.restlet.http.HttpResponse;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public class ExportMapImageResource extends Resource {
 
     private Map<String, String> paramsMap;

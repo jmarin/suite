@@ -12,6 +12,12 @@ import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public class ExportMapJsonResource extends ExportMapResource {
 
     public ExportMapJsonResource(Context context, Request request, Response response,

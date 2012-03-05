@@ -17,6 +17,12 @@ import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public abstract class ExportMapResource extends GeoServicesResource {
 
     protected GeoServer geoServer;

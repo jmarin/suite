@@ -5,6 +5,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.geoserver.test.GeoServerTestSupport;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public class GeometryJSONSchemaTests extends GeoServerTestSupport {
 
     public void testSpatialReferenceSchema() throws Exception {

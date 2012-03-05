@@ -11,6 +11,12 @@ import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public class GeoServicesResource extends ReflectiveResource {
 
     public GeoServicesResource(Context context, Request request, Response response) {

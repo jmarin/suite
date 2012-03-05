@@ -9,6 +9,12 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public class ExportMapResourceTest extends MapResourceTest {
 
     /**

@@ -6,6 +6,12 @@ import org.geoserver.geoservices.geometry.Envelope;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 @XStreamAlias("")
 public class ExportMapService extends AbstractService {
 

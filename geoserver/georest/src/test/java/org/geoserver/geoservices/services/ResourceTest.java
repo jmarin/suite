@@ -6,6 +6,12 @@ import net.sf.json.JSONObject;
 
 import org.geoserver.test.GeoServerTestSupport;
 
+/**
+ * 
+ * @author Juan Marin, OpenGeo
+ *
+ */
+
 public abstract class ResourceTest extends GeoServerTestSupport {
 
     /**
