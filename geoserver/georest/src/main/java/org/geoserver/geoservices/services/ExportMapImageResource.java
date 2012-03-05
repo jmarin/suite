@@ -20,9 +20,11 @@ import org.geoserver.wms.WMS;
 import org.geoserver.wms.WebMap;
 import org.geoserver.wms.WebMapService;
 import org.geoserver.wms.map.GetMapKvpRequestReader;
+import org.geoserver.wms.map.JPEGMapResponse;
 import org.geoserver.wms.map.PNGMapResponse;
 import org.geoserver.wms.map.RenderedImageMap;
 import org.geoserver.wms.map.RenderedImageMapResponse;
+import org.geoserver.wms.map.TIFFMapResponse;
 import org.restlet.Context;
 import org.restlet.data.CharacterSet;
 import org.restlet.data.Form;
@@ -75,7 +77,6 @@ public class ExportMapImageResource extends Resource {
     public void handleGet() {
         String wmsUrl = getWMSUrl();
         Map<String, String> rawMap = KvpUtils.parseQueryString(wmsUrl);
-        this.mediaType = rawMap.get("format");
         GetMapKvpRequestReader mapKvpReader = new GetMapKvpRequestReader(wms);
         try {
             GetMapRequest mapRequest = mapKvpReader.createRequest();
@@ -86,7 +87,7 @@ public class ExportMapImageResource extends Resource {
             RenderedImageMapResponse mapResponse = getMapResponse(webMap.getMimeType());
             Service service = (Service) GeoServerExtensions.bean("wms-1_3_0-ServiceDescriptor");
             Operation operation = new Operation("GetMap", service, null, null);
-            HttpResponse httpResponse = (HttpResponse) getResponse();                        
+            HttpResponse httpResponse = (HttpResponse) getResponse();
             OutputStream out = httpResponse.getHttpCall().getResponseStream();
             mapResponse.write(webMap, out, operation);
         } catch (Exception e) {
@@ -100,6 +101,10 @@ public class ExportMapImageResource extends Resource {
         RenderedImageMapResponse mapResponse = null;
         if (mimeType.equals("image/png")) {
             return new PNGMapResponse(wms);
+        } else if (mimeType.equals("image/jpeg")) {
+            return new JPEGMapResponse(wms);
+        } else if (mimeType.equals("image/tiff")) {
+            return new TIFFMapResponse(wms);
         }
         // TODO complete rest of Mime types
         return mapResponse;
@@ -128,14 +133,14 @@ public class ExportMapImageResource extends Resource {
 
     private String getWMSUrl() {
         Request request = getRequest();
-        Reference host = request.getHostRef(); // http://localhost:8080
+        Reference host = request.getHostRef();
         Catalog catalog = geoServer.getCatalog();
         String service = "wms";
         String version = "1.3.0";
         String operation = "getMap";
         String bbox = paramsMap.get("bbox");
         String size = paramsMap.get("size");
-        String imageFormat = paramsMap.get("f");
+        String imageFormat = paramsMap.get("format");
         String serviceName = "";
         Map<String, Object> attributes = request.getAttributes();
         if (attributes.get("serviceType").equals("MapServer")) {
@@ -169,17 +174,24 @@ public class ExportMapImageResource extends Resource {
         }
         if (imageFormat == null) {
             imageFormat = "PNG";
+        } else if (imageFormat.equals("JPG")) {
+            imageFormat = "JPG";
         }
-        String format = getMimeTypeFromFormat(imageFormat);
+        this.mediaType = getMimeTypeFromFormat(imageFormat);
         String wmsUrl = host.toString() + "/geoserver/wms?request=" + operation + "&service="
                 + service + "&version=" + version + "&bbox=" + bbox + "&width=" + width
-                + "&height=" + height + "&layers=" + layers + "&format=" + format;
+                + "&height=" + height + "&layers=" + layers + "&format=" + this.mediaType;
         return wmsUrl;
     }
 
     private String getMimeTypeFromFormat(String format) {
-        if (format.toUpperCase().equals("PNG")) {
+        String imageFormat = format.toUpperCase();
+        if (imageFormat.equals("PNG")) {
             return "image/png";
+        } else if (imageFormat.equals("JPG")) {
+            return "image/jpeg";
+        } else if (imageFormat.equals("TIF")) {
+            return "image/tiff";
         } else {
             return "image/png";
         }
