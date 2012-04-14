@@ -69,6 +69,9 @@ public class ServiceFinder extends AbstractCatalogFinder {
                         resource = new ExportMapImageResource(null, request, response, paramsMap,
                                 geoServer, wms, webMapService);
                     }
+                } else if ((Integer) Integer.parseInt(operation) != null) {
+                    int layerId = Integer.parseInt(operation);
+                    resource = new MapLayerResource(null, request, response, geoServer, layerId);
                 }
                 break;
             case FeatureServer:
