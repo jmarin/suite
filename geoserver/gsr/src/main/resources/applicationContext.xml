@@ -116,7 +116,7 @@
 	<bean id="agsOwsExportKvpRequestReader" class="org.geoserver.ows.ags.AgsOwsExportRequestKvpReader" />
 
 	<bean id="agsOwsCapabilitiesResponse" class="org.geoserver.ows.ags.AgsOwsExportResponse">
-		<!-- <constructor-arg ref="geoServer" /> -->
+		<!-- <constructor-arg ref="geoServer" /> 
 	</bean>
 	 -->
 </beans>
