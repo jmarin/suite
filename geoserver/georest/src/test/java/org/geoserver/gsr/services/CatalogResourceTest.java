@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;
@@ -9,7 +9,8 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
-import org.geoserver.geoservices.core.ServiceType;
+import org.geoserver.gsr.core.ServiceType;
+import org.geoserver.gsr.services.CatalogService;
 import org.geoserver.test.GeoServerTestSupport;
 
 /**

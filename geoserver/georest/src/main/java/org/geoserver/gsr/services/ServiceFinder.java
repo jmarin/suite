@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.StringTokenizer;
 
 import org.geoserver.catalog.rest.AbstractCatalogFinder;
 import org.geoserver.config.GeoServer;
-import org.geoserver.geoservices.core.ServiceType;
+import org.geoserver.gsr.core.ServiceType;
 import org.geoserver.ows.Dispatcher;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.wms.WMS;

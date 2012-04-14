@@ -1,7 +1,14 @@
-package org.geoserver.geoservices.geometry;
+package org.geoserver.gsr.geometry;
 
 import static org.junit.Assert.*;
 
+import org.geoserver.gsr.geometry.Geometry;
+import org.geoserver.gsr.geometry.GeometryCollection;
+import org.geoserver.gsr.geometry.GeometryType;
+import org.geoserver.gsr.geometry.Point;
+import org.geoserver.gsr.geometry.Polygon;
+import org.geoserver.gsr.geometry.SpatialReference;
+import org.geoserver.gsr.geometry.SpatialReferenceWKID;
 import org.junit.Test;
 
 /**

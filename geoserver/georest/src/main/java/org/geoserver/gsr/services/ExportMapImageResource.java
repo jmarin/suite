@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.io.OutputStream;
 import java.util.HashMap;

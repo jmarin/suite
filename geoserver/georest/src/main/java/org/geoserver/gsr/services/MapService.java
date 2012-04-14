@@ -1,16 +1,16 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.List;
 
-import org.geoserver.geoservices.core.AbstractService;
-import org.geoserver.geoservices.core.ServiceType;
-import org.geoserver.geoservices.geometry.Envelope;
-import org.geoserver.geoservices.geometry.SpatialReference;
-import org.geoserver.geoservices.map.DocumentInfo;
-import org.geoserver.geoservices.map.Layer;
-import org.geoserver.geoservices.map.Table;
-import org.geoserver.geoservices.map.TileInfo;
-import org.geoserver.geoservices.map.TimeInfo;
+import org.geoserver.gsr.core.AbstractService;
+import org.geoserver.gsr.core.ServiceType;
+import org.geoserver.gsr.geometry.Envelope;
+import org.geoserver.gsr.geometry.SpatialReference;
+import org.geoserver.gsr.map.DocumentInfo;
+import org.geoserver.gsr.map.Layer;
+import org.geoserver.gsr.map.Table;
+import org.geoserver.gsr.map.TileInfo;
+import org.geoserver.gsr.map.TimeInfo;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;

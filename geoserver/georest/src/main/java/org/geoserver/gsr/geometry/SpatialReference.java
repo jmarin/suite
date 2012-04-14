@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.geometry;
+package org.geoserver.gsr.geometry;
 
 
 /**

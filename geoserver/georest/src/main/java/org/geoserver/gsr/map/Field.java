@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.map;
+package org.geoserver.gsr.map;
 
 
 /**

@@ -1,8 +1,15 @@
-package org.geoserver.geoservices.geometry;
+package org.geoserver.gsr.geometry;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
+import org.geoserver.gsr.geometry.Envelope;
+import org.geoserver.gsr.geometry.GeometryCollection;
+import org.geoserver.gsr.geometry.MultiPoint;
+import org.geoserver.gsr.geometry.Point;
+import org.geoserver.gsr.geometry.Polygon;
+import org.geoserver.gsr.geometry.Polyline;
+import org.geoserver.gsr.geometry.SpatialReferenceWKID;
 import org.geoserver.test.GeoServerTestSupport;
 
 /**

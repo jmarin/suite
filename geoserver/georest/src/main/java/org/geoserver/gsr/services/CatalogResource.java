@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,9 +6,9 @@ import java.util.logging.Logger;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
-import org.geoserver.geoservices.core.AbstractService;
-import org.geoserver.geoservices.exception.ServiceError;
-import org.geoserver.geoservices.exception.ServiceException;
+import org.geoserver.gsr.core.AbstractService;
+import org.geoserver.gsr.exception.ServiceError;
+import org.geoserver.gsr.exception.ServiceException;
 import org.geotools.util.logging.Logging;
 import org.restlet.Context;
 import org.restlet.data.Request;

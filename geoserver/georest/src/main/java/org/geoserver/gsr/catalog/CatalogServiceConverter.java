@@ -1,8 +1,8 @@
-package org.geoserver.geoservices.catalog;
+package org.geoserver.gsr.catalog;
 
 import java.io.Writer;
 
-import org.geoserver.geoservices.services.CatalogService;
+import org.geoserver.gsr.services.CatalogService;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;

@@ -1,9 +1,9 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.geoserver.geoservices.rest.format.GeoRestReflectiveJSONFormat;
+import org.geoserver.gsr.format.GeoRestReflectiveJSONFormat;
 import org.geoserver.rest.ReflectiveResource;
 import org.geoserver.rest.format.DataFormat;
 import org.geoserver.rest.format.ReflectiveJSONFormat;

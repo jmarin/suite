@@ -1,8 +1,8 @@
-package org.geoserver.geoservices.map;
+package org.geoserver.gsr.map;
 
 import java.util.List;
 
-import org.geoserver.geoservices.geometry.SpatialReference;
+import org.geoserver.gsr.geometry.SpatialReference;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;

@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,11 +7,11 @@ import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.config.GeoServer;
-import org.geoserver.geoservices.exception.ServiceError;
-import org.geoserver.geoservices.exception.ServiceException;
-import org.geoserver.geoservices.geometry.Envelope;
-import org.geoserver.geoservices.geometry.SpatialReference;
-import org.geoserver.geoservices.map.MapLayer;
+import org.geoserver.gsr.exception.ServiceError;
+import org.geoserver.gsr.exception.ServiceException;
+import org.geoserver.gsr.geometry.Envelope;
+import org.geoserver.gsr.geometry.SpatialReference;
+import org.geoserver.gsr.map.MapLayer;
 import org.geoserver.rest.util.RESTUtils;
 import org.restlet.Context;
 import org.restlet.data.Request;

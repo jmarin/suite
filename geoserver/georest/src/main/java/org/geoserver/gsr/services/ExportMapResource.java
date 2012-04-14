@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,9 +6,9 @@ import java.util.StringTokenizer;
 
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.config.GeoServer;
-import org.geoserver.geoservices.geometry.Envelope;
-import org.geoserver.geoservices.geometry.SpatialReference;
-import org.geoserver.geoservices.geometry.SpatialReferenceWKID;
+import org.geoserver.gsr.geometry.Envelope;
+import org.geoserver.gsr.geometry.SpatialReference;
+import org.geoserver.gsr.geometry.SpatialReferenceWKID;
 import org.geoserver.rest.util.RESTUtils;
 import org.geoserver.wms.WMS;
 import org.geotools.geometry.jts.ReferencedEnvelope;

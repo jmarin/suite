@@ -1,7 +1,10 @@
-package org.geoserver.geoservices.geometry;
+package org.geoserver.gsr.geometry;
 
 import static org.junit.Assert.*;
 
+import org.geoserver.gsr.geometry.Envelope;
+import org.geoserver.gsr.geometry.SpatialReference;
+import org.geoserver.gsr.geometry.SpatialReferenceWKID;
 import org.junit.Test;
 
 /**

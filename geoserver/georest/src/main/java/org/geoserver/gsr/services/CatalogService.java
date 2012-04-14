@@ -1,9 +1,9 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.List;
 
-import org.geoserver.geoservices.core.AbstractService;
-import org.geoserver.geoservices.core.ServiceType;
+import org.geoserver.gsr.core.AbstractService;
+import org.geoserver.gsr.core.ServiceType;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;

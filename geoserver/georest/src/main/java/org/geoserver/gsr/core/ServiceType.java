@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.core;
+package org.geoserver.gsr.core;
 
 /**
  * GeoServices REST DRAFT 1 Specification - 6.2.1 Table 3 Catalog Reference, Child Resource Types

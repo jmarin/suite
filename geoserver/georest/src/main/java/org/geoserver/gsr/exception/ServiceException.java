@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.exception;
+package org.geoserver.gsr.exception;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 

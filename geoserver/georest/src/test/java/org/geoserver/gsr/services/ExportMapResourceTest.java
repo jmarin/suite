@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.awt.image.BufferedImage;
 
@@ -8,6 +8,7 @@ import net.sf.json.JSONObject;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
+import org.geoserver.gsr.services.ExportMapService;
 
 /**
  * 

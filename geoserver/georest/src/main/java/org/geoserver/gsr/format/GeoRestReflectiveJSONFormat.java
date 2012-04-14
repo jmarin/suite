@@ -1,13 +1,13 @@
-package org.geoserver.geoservices.rest.format;
+package org.geoserver.gsr.format;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 
-import org.geoserver.geoservices.geometry.SpatialReference;
-import org.geoserver.geoservices.geometry.SpatialReferenceWKID;
-import org.geoserver.geoservices.geometry.SpatialReferenceWKT;
+import org.geoserver.gsr.geometry.SpatialReference;
+import org.geoserver.gsr.geometry.SpatialReferenceWKID;
+import org.geoserver.gsr.geometry.SpatialReferenceWKT;
 import org.geoserver.rest.format.ReflectiveJSONFormat;
 
 import com.thoughtworks.xstream.XStream;

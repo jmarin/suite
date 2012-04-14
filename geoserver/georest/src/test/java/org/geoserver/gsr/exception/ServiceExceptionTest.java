@@ -1,8 +1,9 @@
-package org.geoserver.geoservices.exception;
+package org.geoserver.gsr.exception;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
+import org.geoserver.gsr.exception.ServiceException;
 import org.geoserver.test.GeoServerTestSupport;
 
 /**

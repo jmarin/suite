@@ -1,7 +1,8 @@
-package org.geoserver.geoservices.geometry;
+package org.geoserver.gsr.geometry;
 
 import static org.junit.Assert.*;
 
+import org.geoserver.gsr.geometry.Ring;
 import org.junit.Test;
 
 /**

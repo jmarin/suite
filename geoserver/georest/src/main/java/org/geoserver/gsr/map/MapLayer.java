@@ -1,9 +1,9 @@
-package org.geoserver.geoservices.map;
+package org.geoserver.gsr.map;
 
 import java.util.List;
 
-import org.geoserver.geoservices.geometry.Envelope;
-import org.geoserver.geoservices.geometry.GeometryType;
+import org.geoserver.gsr.geometry.Envelope;
+import org.geoserver.gsr.geometry.GeometryType;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;

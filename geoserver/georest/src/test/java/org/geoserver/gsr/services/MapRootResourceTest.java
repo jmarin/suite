@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.geoserver.catalog.LayerInfo;
+import org.geoserver.gsr.services.MapService;
 
 /**
  * 

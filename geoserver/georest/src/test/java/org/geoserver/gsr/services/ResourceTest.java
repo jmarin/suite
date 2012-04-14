@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import net.sf.json.JSON;
 import net.sf.json.JSONArray;

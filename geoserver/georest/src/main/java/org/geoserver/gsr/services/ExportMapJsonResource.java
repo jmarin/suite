@@ -1,11 +1,11 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.geoserver.config.GeoServer;
-import org.geoserver.geoservices.exception.ServiceError;
-import org.geoserver.geoservices.exception.ServiceException;
+import org.geoserver.gsr.exception.ServiceError;
+import org.geoserver.gsr.exception.ServiceException;
 import org.geoserver.wms.WMS;
 import org.restlet.Context;
 import org.restlet.data.Request;

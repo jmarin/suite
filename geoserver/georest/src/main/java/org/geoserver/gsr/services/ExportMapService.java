@@ -1,8 +1,8 @@
-package org.geoserver.geoservices.services;
+package org.geoserver.gsr.services;
 
-import org.geoserver.geoservices.core.AbstractService;
-import org.geoserver.geoservices.core.ServiceType;
-import org.geoserver.geoservices.geometry.Envelope;
+import org.geoserver.gsr.core.AbstractService;
+import org.geoserver.gsr.core.ServiceType;
+import org.geoserver.gsr.geometry.Envelope;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 

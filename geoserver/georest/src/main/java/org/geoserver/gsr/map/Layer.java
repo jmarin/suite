@@ -1,4 +1,4 @@
-package org.geoserver.geoservices.map;
+package org.geoserver.gsr.map;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 

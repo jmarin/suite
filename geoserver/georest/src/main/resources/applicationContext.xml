@@ -7,7 +7,7 @@
     http://www.springframework.org/schema/tx/spring-tx.xsd"
 	default-autowire="byName">
 
-	<bean id="serviceFinder" class="org.geoserver.geoservices.services.ServiceFinder">
+	<bean id="serviceFinder" class="org.geoserver.gsr.services.ServiceFinder">
 		<constructor-arg ref="geoServer" />
 		<constructor-arg ref="wms"></constructor-arg>
 		<constructor-arg ref="dispatcher"></constructor-arg>
