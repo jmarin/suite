@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>org.opengeo.geoserver</groupId>
-	<artifactId>georest</artifactId>
+	<artifactId>gsr</artifactId>
 	<packaging>jar</packaging>
 	<name>OpenGeo Suite GeoServices REST API</name>
 

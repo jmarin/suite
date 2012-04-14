@@ -331,7 +331,7 @@
   <module>analytics</module>
   <module>web</module>
   <module>test</module>
-  <module>georest</module>
+  <module>gsr</module>
  </modules>
 
  <profiles>
