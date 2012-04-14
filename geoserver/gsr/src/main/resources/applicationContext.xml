@@ -81,7 +81,7 @@
 
 	<!-- PLAYGROUND IS BELOW. THIS WILL BE DELETED -->
 
-	<bean id="ags-ows" class="org.geoserver.ows.ags.ArcGISServerOWSService">
+	<!-- <bean id="ags-ows" class="org.geoserver.ows.ags.ArcGISServerOWSService">
 		<constructor-arg ref="geoServer"></constructor-arg>
 	</bean>
 
@@ -118,4 +118,5 @@
 	<bean id="agsOwsCapabilitiesResponse" class="org.geoserver.ows.ags.AgsOwsExportResponse">
 		<!-- <constructor-arg ref="geoServer" /> -->
 	</bean>
+	 -->
 </beans>
