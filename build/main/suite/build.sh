@@ -1,16 +1,7 @@
 #!/bin/bash
 
-#
-# Utility function to check return values on commands
-#
-function checkrv {
-  if [ $1 -gt 0 ]; then
-    echo "$2 failed with return value $1"
-    exit 1
-  else
-    echo "$2 succeeded return value $1"
-  fi
-}
+# load common functions
+. "$( cd "$( dirname "$0" )" && pwd )"/functions 
 
 #
 # function to rebuild with a specific profile
@@ -29,111 +20,57 @@ function profile_rebuild {
   checkrv $? "maven clean install dashboard ($profile profile)"
   popd
 
-  $MVN -s $MVN_SETTINGS -P $profile -o assembly:attached
+  $MVN -s $MVN_SETTINGS -P $profile -o assembly:attached -Dbuild.revision=$revision
   checkrv $? "maven assembly ($profile profile)"
-}
-
-#
-# function to copy over build artifacts
-# copy_artifacts <alias> [profile]
-#
-function copy_artifacts {
-  local aliaas=$1
-  local prefix=""
-  local counter=0
-
-  if [ ! -z $2 ]; then
-    prefix=-$2
-  fi
-
-  pushd target/$2
-  for x in $artifacts
-  do
-    src=opengeosuite${prefix}-*-${x}.zip
-    if [ -e $f ]; then
-       echo "copying $src"
-       dst=opengeosuite${prefix}-$revision-${x}.zip
-       cp $src $dist/$dst
-       ln -sf $dist/$dst $dist/opengeosuite${prefix}-${aliaas}-${x}.zip
-       let counter=counter+1
-    fi
-  
-    src=opengeosuite${prefix}-*-${x}.tar.gz
-    if [ -e $src ]; then
-      echo "copying $src"
-      dst=opengeosuite${prefix}-$revision-${x}.tar.gz
-      cp $src $dist/$dst
-      ln -sf $dist/$dst $dist/opengeosuite${prefix}-$revision-${x}.tar.gz
-      let counter=counter+1
-    fi
-  done
-
-  popd
-
-  if [ $counter -eq 0 ]; then
-    echo "no artifacts copied"
-    exit 1
-  fi
 }
 
 set -x
 
-if [ -z "$DIST_PATH" ]; then
-  DIST_PATH="latest"
-fi
+DIST_PATH=`init_dist_path $DIST_PATH`
 
 ALIAS=$REV
 if [ "$ALIAS" == "HEAD" ]; then
   ALIAS="latest"
 fi
 
-dist=/var/www/suite/$DIST_PATH
-if [ ! -e $dist ]; then
-  mkdir -p $dist
-fi
-echo "dist: $dist"
-
-artifacts="bin win mac ext war war-geoserver war-geoexplorer war-geoeditor war-geowebcache war-geoserver-jboss doc analytics control-flow importer readme dashboard-win32 dashboard-lin32 dashboard-lin64 dashboard-osx pgadmin-postgis data-dir"
-
 # set up the maven repository for this particular branch/tag/etc...
-MVN_SETTINGS_TEMPLATE=`pwd`/repo/build/settings.xml
-pushd maven
-
-# TODO: remove teh maven repo logic and just use a single maven repo
-MVN_REPO=latest
-if [ ! -d $MVN_REPO ]; then
-  echo "Creating new maven repository at `pwd`/$MVN_REPO"
-  mkdir -p $MVN_REPO
-  sed "s#@PATH@#`pwd`/$MVN_REPO/repo#g" $MVN_SETTINGS_TEMPLATE | sed 's#<\!--\(localRepository>.*</localRepository\)-->#<\1>#g' > $MVN_REPO/settings.xml
-  cp -R repo-template $MVN_REPO/repo
-fi
-popd
-
-MVN_SETTINGS=`pwd`/maven/$MVN_REPO/settings.xml
+#TODO: fix dist_path logic and how it relates to maven repo, etc...
+MVN_SETTINGS=`init_mvn_repo latest`
 export MAVEN_OPTS=-Xmx256m
 
 # checkout the requested revision to build
 cd repo
-git checkout $REV
-git pull origin $REV
+if [ ! -z $REV ]; then
+  git checkout $REV
+
+  # if this rev is a tag don't pull
+  if [ "$( git tag | grep $REV )" != $REV ]; then
+     git pull origin $REV
+  fi
+
+  git submodule update --init --recursive
+fi
 
 # extract the revision number
-revision=`git log --format=format:%H | head -n 1`
-if [ "x$revision" == "x" ]; then
-  echo "failed to get revision number from git info"
-  exit 1
-fi
+revision=`get_rev .`
 
 # only use first seven chars
 revision=${revision:0:7}
 
 echo "building $revision ($REV) with maven settings $MVN_SETTINGS"
 
+dist=/var/www/suite/$DIST_PATH/$revision
+if [ ! -e $dist ]; then
+  mkdir -p $dist
+fi
+
+echo "exporting artifacts to: $dist"
+
 # perform a full build
 $MVN -s $MVN_SETTINGS -Dfull -Dmvn.exec=$MVN -Dmvn.settings=$MVN_SETTINGS -Dbuild.revision=$revision -Dbuild.date=$BUILD_ID $BUILD_FLAGS clean install
 checkrv $? "maven install"
 
-$MVN -o -s $MVN_SETTINGS assembly:attached
+$MVN -o -s $MVN_SETTINGS assembly:attached -Dbuild.revision=$revision
 checkrv $? "maven assembly"
 
 $MVN -s $MVN_SETTINGS -Dmvn.exec=$MVN -Dmvn.settings=$MVN_SETTINGS deploy -DskipTests
@@ -142,29 +79,35 @@ checkrv $? "maven deploy"
 # build with the enterprise profile
 profile_rebuild ee
 
-# build with the cloud profile
-#profile_rebuild cloud
-
 # copy the new artifacts into place
-copy_artifacts $ALIAS
-copy_artifacts $ALIAS ee
-#copy_artifacts cloud
+cp target/*.zip target/ee/*.zip $dist
 
-
-# copy the dashboard artifacts into place
+# alias the artifacts if necessary
 pushd $dist
-for f in `ls opengeosuite-*-dashboard-*.zip`; do
-  f2=$(echo $f|sed 's/opengeosuite-//g'|sed 's/-dashboard//g'|sed 's/^/dashboard-/g') 
-  mv $f $f2
+for f in `ls *.zip`; do
+  f2=$( echo $f | sed "s/$revision/$ALIAS/g" )
+  ln -sf $f $f2
 done
+popd
 
-for x in $artifacts; do
-  ls -t | grep "opengeosuite-.*-$x.zip" | tail -n +7 | xargs rm -f
-  ls -t | grep "opengeosuite-.*-$x.tar.gz" | tail -n +7 | xargs rm -f
-done
-for x in win32 lin32 lin64 osx; do
-  ls -t | grep "dashboard-.*-$x.zip" | tail -n +7 | xargs rm -f
-done
+# alias the entire build
+pushd $dist/..
+if [ -e $ALIAS ]; then
+  unlink $ALIAS
+fi
+ln -sf $dist $ALIAS
+popd
+
+# clean up old artifacts
+pushd $dist/..
+if [ "$DIST_PATH" == "latest" ]; then
+  # keep around last two build
+  ls -lt | grep -v "^l" | cut -d ' ' -f 8 | tail -n +3 | xargs rm -rf 
+fi
+if [ "$DIST_PATH" == "stable" ]; then
+  # only keep around builds that are less than 2 weeks old
+  find . -type d -mtime +14 -exec rm -f {} \;
+fi
 popd
 
 # start_remote_job <url> <name> <profile>

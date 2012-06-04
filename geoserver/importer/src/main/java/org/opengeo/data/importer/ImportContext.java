@@ -71,6 +71,12 @@ public class ImportContext implements Serializable {
      */
     String user;
 
+    /** 
+     * flag to control whether imported files (indirect) should be archived after import
+     * TODO: false is a better default for this, change it and give mapstory/IS a heads up.
+     */
+    boolean archive = true;
+
     public ImportContext(long id) {
         this();
         this.id = id;
@@ -136,7 +142,15 @@ public class ImportContext implements Serializable {
     public void setUser(String user) {
         this.user = user;
     }
-    
+
+    public boolean isArchive() {
+        return archive;
+    }
+
+    public void setArchive(boolean archive) {
+        this.archive = archive;
+    }
+
     public List<ImportTask> getTasks() {
         return Collections.unmodifiableList(tasks);
     }
@@ -184,6 +198,16 @@ public class ImportContext implements Serializable {
         }
     }
 
+    public void reattach() {
+        if (data != null) {
+            data.reattach();
+        }
+
+        for (ImportTask task : tasks) {
+            task.setContext(this);
+            task.reattach();
+        }
+    }
 
     @Override
     public int hashCode() {
@@ -208,6 +232,13 @@ public class ImportContext implements Serializable {
         } else if (!id.equals(other.id))
             return false;
         return true;
+    }
+
+    private Object readResolve() {
+        if (tasks == null) {
+            tasks = new ArrayList();
+        }
+        return this;
     }
 }
     

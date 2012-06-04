@@ -28,6 +28,13 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>geoserver/extension/target/dependency</directory>
+      <outputDirectory>extension/sqlserver</outputDirectory>
+      <includes>
+        <include>gt-jdbc-sqlserver-*</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>styler/target/styler</directory>
       <outputDirectory>webapps/styler</outputDirectory>
     </fileSet>
@@ -88,6 +95,10 @@
       <outputDirectory>webapps/opengeo-docs/geoeditor</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>docs/gxp/target/html</directory>
+      <outputDirectory>webapps/opengeo-docs/sdk-api</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>recipes</directory>
       <outputDirectory>webapps/recipes</outputDirectory>
       <excludes>
@@ -122,10 +133,10 @@
       <directory>assembly/jre-win/jre</directory>
       <outputDirectory>jre</outputDirectory>
     </fileSet>
-    <fileSet>
+    <!--fileSet>
       <directory>assembly/gdal-win</directory>
       <outputDirectory>gdal</outputDirectory>
-    </fileSet>
+    </fileSet-->
     <fileSet>
       <directory>assembly/postgres-win/pgsql</directory>
       <outputDirectory>pgsql/8.4</outputDirectory>
@@ -134,8 +145,16 @@
       <directory>assembly/pgdata</directory>
       <outputDirectory>pgdata</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>sdk/target/sdk</directory>
+      <outputDirectory>sdk</outputDirectory>
+    </fileSet>
   </fileSets>
   <files>
+  <file>
+      <source>sdk/target/version.ini</source>
+      <outputDirectory>sdk</outputDirectory>
+    </file>
     <file>
       <source>jetty/lib/jetty-start-${jetty.version}.jar</source>
       <outputDirectory>/</outputDirectory>

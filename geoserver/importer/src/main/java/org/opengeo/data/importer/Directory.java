@@ -1,9 +1,6 @@
 package org.opengeo.data.importer;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,10 +8,15 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.io.FilenameUtils;
 import org.geoserver.data.util.IOUtils;
 import org.geotools.util.logging.Logging;
+import org.h2.store.fs.FileObjectOutputStream;
 
 public class Directory extends FileData {
 
@@ -37,6 +39,22 @@ public class Directory extends FileData {
         return new Directory(directory);
     }
 
+    public static Directory createFromArchive(File archive) throws IOException {
+        VFSWorker vfs = new VFSWorker();
+        if (!vfs.canHandle(archive)) {
+            throw new IOException(archive.getPath() + " is not a recognizable  format");
+        }
+
+        String basename = FilenameUtils.getBaseName(archive.getName());
+        File dir = new File(archive.getParentFile(), basename);
+        int i = 0;
+        while (dir.exists()) {
+            dir = new File(archive.getParentFile(), basename + i++);
+        }
+        vfs.extractTo(archive, dir);
+        return new Directory(dir);
+    }
+
     public File getFile() {
         return file;
     }
@@ -49,8 +67,10 @@ public class Directory extends FileData {
         //if the file is an archive, unpack it
         VFSWorker vfs = new VFSWorker();
         if (vfs.canHandle(file)) {
-            LOGGER.info("unpacking " + file.getAbsolutePath() + " to " + this.file.getAbsolutePath());
+            LOGGER.fine("unpacking " + file.getAbsolutePath() + " to " + this.file.getAbsolutePath());
             vfs.extractTo(file, this.file);
+
+            LOGGER.fine("deleting " + file.getAbsolutePath());
             file.delete();
         }
     }
@@ -85,14 +105,27 @@ public class Directory extends FileData {
             //scan all the files looking for spatial ones
             for (File f : dir.listFiles()) {
                 if (f.isHidden()) {
+                    all.remove(f);
                     continue;
                 }
                 if (f.isDirectory()) {
-                    Directory d = new Directory(f);
-                    d.prepare();
-                    
-                    files.add(d);
+                    // @hacky - ignore __MACOSX
+                    // this could probably be dealt with in a better way elsewhere
+                    // like by having Directory ignore the contents since they
+                    // are all hidden files anyway
+                    if (!"__MACOSX".equals(f.getName())) {
+                        Directory d = new Directory(f);
+                        d.prepare();
+
+                        files.add(d);
+                    }
                     //q.push(f);
+                    continue;
+                }
+
+                //special case for .aux files, they are metadata but get picked up as readable 
+                // by the erdas imagine reader...just ignore them for now 
+                if ("aux".equalsIgnoreCase(FilenameUtils.getExtension(f.getName()))) {
                     continue;
                 }
 
@@ -288,11 +321,56 @@ public class Directory extends FileData {
             throw e;
         }
     }
+    
+    public void archive(File output) throws IOException {
+        File archiveDir = output.getAbsoluteFile().getParentFile();
+        String outputName = output.getName().replace(".zip","");
+        int id = 0;
+        while (output.exists()) {
+            output = new File(archiveDir, outputName + id + ".zip");
+            id++;
+        }
+        ZipOutputStream zout = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(output)));
+        Exception error = null;
+
+        // don't call zout.close in finally block, if an error occurs and the zip
+        // file is empty by chance, the second error will mask the first
+        try {
+            IOUtils.zipDirectory(file, zout, null);
+        } catch (Exception ex) {
+            error = ex;
+            try {
+                zout.close();
+            } catch (Exception ex2) {
+                // nothing, we're totally aborting
+            }
+            output.delete();
+            if (ex instanceof IOException) throw (IOException) ex;
+            throw (IOException) new IOException("Error archiving").initCause(ex);
+        } 
+        
+        // if we get here, the zip is properly written
+        try {
+            zout.close();
+        } finally {
+            cleanup();
+        }
+    }
 
     @Override
     public void cleanup() throws IOException {
-        for (FileData f : getFiles()) {
-            f.cleanup();
+        File[] files = file.listFiles();
+        if (files != null) {
+            for (File f: files) {
+                if (f.isDirectory()) {
+                    new Directory(f).cleanup();
+                } else {
+                    if (LOGGER.isLoggable(Level.FINE)) {
+                        LOGGER.fine("Deleting file " + f.getAbsolutePath());
+                    }
+                    f.delete();
+                }
+            }
         }
         super.cleanup();
     }

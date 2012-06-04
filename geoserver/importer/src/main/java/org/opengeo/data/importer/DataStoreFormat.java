@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.Catalog;
@@ -25,6 +27,7 @@ import org.geotools.data.Query;
 import org.geotools.data.Transaction;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.jdbc.JDBCDataStoreFactory;
+import org.geotools.util.logging.Logging;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.FeatureType;
@@ -36,6 +39,10 @@ import org.opengis.feature.type.FeatureType;
  *
  */
 public class DataStoreFormat extends VectorFormat {
+
+    private static final Logger LOGGER = Logging.getLogger(DataStoreFormat.class);
+
+    private static final long serialVersionUID = 1L;
 
     private Class<? extends DataStoreFactorySpi> dataStoreFactoryClass;
     private transient volatile DataStoreFactorySpi dataStoreFactory;
@@ -94,31 +101,43 @@ public class DataStoreFormat extends VectorFormat {
             List<ImportItem> resources = new ArrayList<ImportItem>();
             for (String typeName : dataStore.getTypeNames()) {
                 // warning - this will log a scary exception if SRS cannot be found
-                FeatureTypeInfo featureType = 
-                        cb.buildFeatureType(dataStore.getFeatureSource(typeName));
-                featureType.setStore(null);
-                featureType.setNamespace(null);
-
-                SimpleFeatureSource featureSource = dataStore.getFeatureSource(typeName); 
-                cb.setupBounds(featureType, featureSource);
-
-                //add attributes
-                CatalogFactory factory = catalog.getFactory();
-                SimpleFeatureType schema = featureSource.getSchema();
-                for (AttributeDescriptor ad : schema.getAttributeDescriptors()) {
-                    AttributeTypeInfo att = factory.createAttribute();
-                    att.setName(ad.getLocalName());
-                    att.setBinding(ad.getType().getBinding());
-                    featureType.getAttributes().add(att);
+                try {
+                    SimpleFeatureType nativeFeatureType = dataStore.getSchema(typeName);
+                    //ignore if no geometry
+                    // TODO: make this optional, geometryless should be supported
+                    if (nativeFeatureType.getGeometryDescriptor() == null) {
+                        continue;
+                    }
+                    FeatureTypeInfo featureType = 
+                            cb.buildFeatureType(dataStore.getFeatureSource(typeName));
+                    featureType.setStore(null);
+                    featureType.setNamespace(null);
+    
+                    SimpleFeatureSource featureSource = dataStore.getFeatureSource(typeName); 
+                    cb.setupBounds(featureType, featureSource);
+    
+                    //add attributes
+                    CatalogFactory factory = catalog.getFactory();
+                    SimpleFeatureType schema = featureSource.getSchema();
+                    for (AttributeDescriptor ad : schema.getAttributeDescriptors()) {
+                        AttributeTypeInfo att = factory.createAttribute();
+                        att.setName(ad.getLocalName());
+                        att.setBinding(ad.getType().getBinding());
+                        featureType.getAttributes().add(att);
+                    }
+    
+                    LayerInfo layer = cb.buildLayer((ResourceInfo)featureType);
+    
+                    ImportItem item = new ImportItem(layer);
+                    item.getMetadata().put(FeatureType.class, schema);
+    
+                    resources.add(item);
                 }
-
-                LayerInfo layer = cb.buildLayer((ResourceInfo)featureType);
-
-                ImportItem item = new ImportItem(layer);
-                item.getMetadata().put(FeatureType.class, schema);
-
-                resources.add(item);
+                catch(Exception e) {
+                    LOGGER.log(Level.WARNING, "Error occured loading " + typeName, e);
+                }
             }
+            
 
             return resources;
         }
@@ -126,26 +145,41 @@ public class DataStoreFormat extends VectorFormat {
             dataStore.dispose();
         }
     }
+    
+    private DataStore getDataStore(ImportData data, ImportItem item) throws IOException {
+        DataStore dataStore = (DataStore) item.getMetadata().get(DataStore.class);
+        if (dataStore == null) {
+            dataStore = createDataStore(data);
+
+            //store in order to later dispose
+            //TODO: come up with a better scheme for caching the datastore
+            item.getMetadata().put(DataStore.class, dataStore);
+        }
+        return dataStore;
+    }
 
     @Override
     public FeatureReader read(ImportData data, ImportItem item) throws IOException {
-        DataStore dataStore = createDataStore(data);
-
-        //store in order to later dispose
-        //TODO: come up with a better scheme for caching the datastore
-        item.getMetadata().put(DataStore.class, dataStore);
-        FeatureReader reader = dataStore.getFeatureReader(
-            new Query(item.getLayer().getResource().getNativeName()), Transaction.AUTO_COMMIT);
+        FeatureReader reader = getDataStore(data, item).getFeatureReader(
+            new Query(item.getOriginalName()), Transaction.AUTO_COMMIT);
         return reader;
     }
 
+    @Override
     public void dispose(FeatureReader reader, ImportItem item) throws IOException {
         reader.close();
 
         if (item.getMetadata().containsKey(DataStore.class)) {
             DataStore dataStore = (DataStore) item.getMetadata().get(DataStore.class);
             dataStore.dispose();
+            item.getMetadata().remove(DataStore.class);
         }
+    }
+
+    @Override
+    public int getFeatureCount(ImportData data, ImportItem item) throws IOException {
+        SimpleFeatureSource featureSource = getDataStore(data, item).getFeatureSource(item.getOriginalName());
+        return featureSource.getCount(Query.ALL);
     }
     
     public DataStore createDataStore(ImportData data) throws IOException {

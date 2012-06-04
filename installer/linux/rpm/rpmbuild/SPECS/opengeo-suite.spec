@@ -1,12 +1,12 @@
 Name: opengeo-suite
-Version: 2.4.4
+Version: 2.5
 Release: 1
 Summary: A full geospatial software stack that allows you to allows you to easily compose, style, and publish data and maps.
 Group: Applications/Engineering
 License: see http://opengeo.org
 Requires(post): bash
 Requires(preun): bash
-Requires: opengeo-postgis >= 2.4.4, opengeo-geoserver >= 2.4.4, opengeo-docs >= 2.4.4
+Requires: opengeo-postgis >= 2.5, opengeo-geoserver >= 2.5, opengeo-docs >= 2.5, opengeo-suite-client-sdk >= 2.5
 Patch: geoexplorer_webxml.patch
 
 %if 0%{?centos} == 6
@@ -14,6 +14,7 @@ Patch: geoexplorer_webxml.patch
 %else
 %define TOMCAT tomcat5 
 %endif
+Requires: %{TOMCAT}-admin-webapps
 
 # the current patch will fail under newer rpmbuild package which
 # uses fuzz 0 - this implies the patch needs rediffing - hack for now
@@ -54,6 +55,8 @@ components.  It is comprised of the following core components:
    cp -rp $RPM_SOURCE_DIR/opengeo-suite/geowebcache.war $RPM_BUILD_ROOT/var/lib/%{TOMCAT}/webapps/.
    cp -rp $RPM_SOURCE_DIR/opengeo-suite/recipes.war $RPM_BUILD_ROOT/var/lib/%{TOMCAT}/webapps/.
    cp -rp $RPM_SOURCE_DIR/opengeo-suite/geoexplorer.war $RPM_BUILD_ROOT/var/lib/%{TOMCAT}/webapps/.
+   cp -rp ../../../common/tomcat-admin-setup.sh $RPM_BUILD_ROOT/usr/share/opengeo-suite/.
+   chmod +x $RPM_BUILD_ROOT/usr/share/opengeo-suite/tomcat-admin-setup.sh
 
 %post
    # check for upgrade, if so preserve geoexp web.xml
@@ -63,6 +66,9 @@ components.  It is comprised of the following core components:
 
    if [ -d $GXP ]; then
      # upgrade, perserve the old web.xml
+     if [ -e $TMP ]; then
+       rm -rf $TMP
+     fi
      mkdir $TMP
      cp $GXP/WEB-INF/web.xml $TMP
    fi
@@ -90,7 +96,10 @@ components.  It is comprised of the following core components:
 
    chown tomcat /var/lib/%{TOMCAT}/webapps/*.war
    chkconfig %{TOMCAT} on
-   service %{TOMCAT} restart
+   
+   echo ""
+   echo "NOTICE: Please run /usr/share/opengeo-suite/tomcat-admin-setup.sh to complete this installation."
+   echo ""
 
 %preun
 
@@ -109,8 +118,6 @@ components.  It is comprised of the following core components:
     if [ -L $WEBAPPS/opengeo-docs ]; then
       unlink $WEBAPPS/opengeo-docs
     fi
-
-    service %{TOMCAT} restart
   fi
 
 %postun
@@ -119,6 +126,7 @@ components.  It is comprised of the following core components:
 
 %files
 %defattr(-,root,root,-)
+/usr/share/opengeo-suite/tomcat-admin-setup.sh
 /var/lib/%{TOMCAT}/webapps/dashboard.war
 /var/lib/%{TOMCAT}/webapps/geoeditor.war
 /var/lib/%{TOMCAT}/webapps/geoexplorer.war

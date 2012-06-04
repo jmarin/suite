@@ -2,7 +2,6 @@
   <id>bin</id>
   <formats>
     <format>zip</format>
-    <format>tar.gz</format>
   </formats>
   <baseDirectory>opengeosuite-${project.version}</baseDirectory>
   <fileSets>
@@ -56,6 +55,10 @@
     <fileSet>
       <directory>docs/geoeditor/target/html</directory>
       <outputDirectory>webapps/opengeo-docs/geoeditor</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>docs/gxp/target/html</directory>
+      <outputDirectory>webapps/opengeo-docs/sdk-api</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>recipes</directory>

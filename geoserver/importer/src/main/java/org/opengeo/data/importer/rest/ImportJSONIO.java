@@ -26,9 +26,11 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StoreInfo;
+import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.config.util.XStreamPersisterFactory;
 import org.geoserver.rest.PageInfo;
+import org.geoserver.rest.RestletException;
 import org.opengeo.data.importer.Database;
 import org.opengeo.data.importer.Directory;
 import org.opengeo.data.importer.FileData;
@@ -39,7 +41,11 @@ import org.opengeo.data.importer.ImportTask;
 import org.opengeo.data.importer.Importer;
 import org.opengeo.data.importer.SpatialFile;
 import org.opengeo.data.importer.Table;
+import org.opengeo.data.importer.UpdateMode;
+import org.opengeo.data.importer.ImportContext.State;
 import org.opengeo.data.importer.transform.*;
+import org.restlet.data.Status;
+import org.restlet.ext.json.JsonRepresentation;
 
 /**
  * Utility class for reading/writing import/tasks/etc... to/from JSON.
@@ -49,30 +55,9 @@ import org.opengeo.data.importer.transform.*;
 public class ImportJSONIO {
 
     Importer importer;
-    XStreamPersister xp;
-
+    
     public ImportJSONIO(Importer importer) {
         this.importer = importer;
-        xp = new XStreamPersisterFactory().createJSONPersister();
-        xp.setReferenceByName(true);
-        xp.setExcludeIds();
-        xp.setCatalog(importer.getCatalog());
-        xp.setHideFeatureTypeAttributes();
-        // @todo this is copy-and-paste from org.geoserver.catalog.rest.FeatureTypeResource
-        xp.setCallback(new XStreamPersister.Callback() {
-
-            @Override
-            protected void postEncodeFeatureType(FeatureTypeInfo ft,
-                    HierarchicalStreamWriter writer, MarshallingContext context) {
-                try {
-                    writer.startNode("attributes");
-                    context.convertAnother(ft.attributes());
-                    writer.endNode();
-                } catch (IOException e) {
-                    throw new RuntimeException("Could not get native attributes", e);
-                }
-            }
-        });
     }
     
     // allow tests to not require full importer
@@ -89,7 +74,14 @@ public class ImportJSONIO {
         json.object();
         json.key("id").value(context.getId());
         json.key("state").value(context.getState());
-        
+
+        if (context.getTargetWorkspace() != null) {
+            json.key("targetWorkspsace").value(toJSON(context.getTargetWorkspace()));
+        }
+        if (context.getTargetStore() != null) {
+            json.key("targetStore").value(toJSON(context.getTargetStore()));
+        }
+
         tasks(context.getTasks(), true, page, json);
 
         json.endObject();
@@ -97,6 +89,35 @@ public class ImportJSONIO {
         json.flush();
     }
 
+    public ImportContext context(InputStream in) throws IOException {
+        JSONObject json = parse(in);
+        ImportContext context = null;
+        if (json.has("import")) {
+            context = new ImportContext();
+            
+            json = json.getJSONObject("import");
+            if (json.has("id")) {
+                context.setId(json.getLong("id"));
+            }
+            if (json.has("state")) {
+                context.setState(State.valueOf(json.getString("state")));
+            }
+            if (json.has("user")) {
+                context.setUser(json.getString("user"));
+            }
+            if (json.has("targetWorkspace")) {
+                context.setTargetWorkspace(
+                    fromJSON(json.getJSONObject("targetWorkspace"), WorkspaceInfo.class));
+            }
+            if (json.has("targetStore")) {
+                context.setTargetStore(
+                    fromJSON(json.getJSONObject("targetStore"), StoreInfo.class));
+            }
+            if (json.has("data")) {
+            }
+        }
+        return context;
+    }
 
     public void contexts(List<ImportContext> contexts, PageInfo page, OutputStream out) 
         throws IOException {
@@ -209,13 +230,21 @@ public class ImportJSONIO {
         // @todo don't know why catalog isn't set here, thought this was set during load from BDBImportStore
         layer.getResource().setCatalog(importer.getCatalog());
         
+        String itemHREF = page.rootURI(String.format("/imports/%d/tasks/%d/items/%d", 
+              task.getContext().getId(), task.getId(), id));
+        
         json.object()
           .key("id").value(id)
-          .key("href").value(page.rootURI(String.format("/imports/%d/tasks/%d/items/%d", 
-              task.getContext().getId(), task.getId(), id)))
+          .key("href").value(itemHREF)
           .key("state").value(item.getState())
+          .key("progress").value(itemHREF + "/progress")
+          .key("originalName").value(item.getOriginalName())
           .key("resource").value(toJSON(layer.getResource()))
           .key("layer").value(toJSON(layer));
+
+        if (item.getUpdateMode() != null) {
+            json.key("updateMode").value(item.getUpdateMode().name());
+        }
         if (item.getError() != null) {
             json.key("errorMessage").value(concatErrorMessages(item.getError()));
         }
@@ -298,7 +327,7 @@ public class ImportJSONIO {
                 task.setId(json.getInt("id"));
             }
             if (json.has("updateMode")) {
-                task.setUpdateMode(ImportTask.UpdateMode.valueOf(json.getString("updateMode").toUpperCase()));
+                task.setUpdateMode(UpdateMode.valueOf(json.getString("updateMode").toUpperCase()));
             }
             if (json.has("source")) {
                 JSONObject source = json.getJSONObject("source");
@@ -351,6 +380,10 @@ public class ImportJSONIO {
             importItem.setTransform(transformChain(json.getJSONObject("transformChain")));
         }
 
+        if (json.has("updateMode")) {
+            //importItem.setUpdateMode(updateMO)
+            importItem.setUpdateMode(UpdateMode.valueOf(json.getString("updateMode")));
+        }
         //parse the layer if specified
         return importItem;
     }
@@ -381,12 +414,21 @@ public class ImportJSONIO {
             transform = new IntegerFieldToDateTransform(json.getString("field"));
         } else if ("CreateIndexTransform".equalsIgnoreCase(type)) {
             transform = new CreateIndexTransform(json.getString("field"));
-        } 
+        } else if ("AttributeRemapTransform".equalsIgnoreCase(type)) {
+            Class clazz;
+            try {
+                clazz = Class.forName( json.getString("target") );
+            } catch (ClassNotFoundException cnfe) {
+                throw new RuntimeException("unable to locate target class " + json.getString("target"));
+            }
+            transform = new AttributeRemapTransform(json.getString("field"), clazz);
+        }
         else {
             throw new RuntimeException("parsing of " + type + " not implemented");
         }
         return transform;
     }
+
     
     public void data(ImportData data, PageInfo page, OutputStream out) throws IOException {
         data(data, page, builder(out));
@@ -491,12 +533,40 @@ public class ImportJSONIO {
 
     JSONObject toJSON(Object o) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+        XStreamPersister xp = persister(false);
         xp.save(o, out);
         return (JSONObject) JSONSerializer.toJSON(new String(out.toByteArray()));
     }
 
     <T> T fromJSON(JSONObject json, Class<T> clazz) throws IOException {
+        XStreamPersister xp = persister(true);
         return (T) xp.load(new ByteArrayInputStream(json.toString().getBytes()), clazz);
+    }
+
+    XStreamPersister persister(boolean encodeByRef) {
+        XStreamPersister xp = 
+            importer.initXStreamPersister(new XStreamPersisterFactory().createJSONPersister(), encodeByRef);
+        
+        xp.setReferenceByName(true);
+        xp.setExcludeIds();
+        //xp.setCatalog(importer.getCatalog());
+        xp.setHideFeatureTypeAttributes();
+        // @todo this is copy-and-paste from org.geoserver.catalog.rest.FeatureTypeResource
+        xp.setCallback(new XStreamPersister.Callback() {
+
+            @Override
+            protected void postEncodeFeatureType(FeatureTypeInfo ft,
+                    HierarchicalStreamWriter writer, MarshallingContext context) {
+                try {
+                    writer.startNode("attributes");
+                    context.convertAnother(ft.attributes());
+                    writer.endNode();
+                } catch (IOException e) {
+                    throw new RuntimeException("Could not get native attributes", e);
+                }
+            }
+        });
+        return xp;
     }
 
     JSONObject parse(InputStream in) throws IOException {
@@ -542,10 +612,23 @@ public class ImportJSONIO {
         } else if (transform instanceof CreateIndexTransform) {
             CreateIndexTransform df = (CreateIndexTransform) transform;
             json.key("field").value(df.getField());
+        } else if (transform.getClass() == AttributeRemapTransform.class) {
+            AttributeRemapTransform art = (AttributeRemapTransform) transform;
+            json.key("field").value(art.getField());
+            json.key("target").value(art.getType().getName());
         } else {
             throw new IOException("Serializaiton of " + transform.getClass() + " not implemented");
         }
         json.endObject();
+    }
+    
+    static RestletException badRequest(String error) {
+        JSONObject errorResponse = new JSONObject();
+        JSONArray errors = new JSONArray();
+        errors.add(error);
+        errorResponse.put("errors", errors);
+        JsonRepresentation rep = new JsonRepresentation(errorResponse.toString());
+        return new RestletException(rep, Status.CLIENT_ERROR_BAD_REQUEST);
     }
 
     public static class FlushableJSONBuilder extends JSONBuilder {

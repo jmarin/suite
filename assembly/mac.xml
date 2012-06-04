@@ -80,6 +80,10 @@
       <outputDirectory>webapps/opengeo-docs/geoeditor</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>docs/gxp/target/html</directory>
+      <outputDirectory>webapps/opengeo-docs/sdk-api</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>recipes</directory>
       <outputDirectory>webapps/recipes</outputDirectory>
       <excludes>
@@ -102,6 +106,10 @@
       <directory>assembly/pgdata</directory>
       <outputDirectory>pgdata</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>sdk/target/sdk</directory>
+      <outputDirectory>sdk</outputDirectory>
+    </fileSet> 
 <!--
     <fileSet>
       <directory>assembly/postgres-osx</directory>

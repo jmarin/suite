@@ -4,13 +4,10 @@
  */
 package org.opengeo.data.importer.web;
 
-import static org.opengeo.data.importer.web.ImporterWebUtils.importer;
-
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,7 +15,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.PageParameters;
 import org.apache.wicket.ResourceReference;
-import org.apache.wicket.Session;
+import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -26,12 +23,10 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.SimpleAttributeModifier;
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -45,7 +40,7 @@ import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.web.GeoServerApplication;
-import org.geoserver.web.GeoServerBasePage;
+import org.geoserver.web.GeoServerSecuredPage;
 import org.geoserver.web.data.store.StoreChoiceRenderer;
 import org.geoserver.web.data.store.StoreModel;
 import org.geoserver.web.data.store.StoresModel;
@@ -55,9 +50,11 @@ import org.geoserver.web.data.workspace.WorkspacesModel;
 import org.geoserver.web.wicket.GeoServerDialog;
 import org.geoserver.web.wicket.GeoServerDialog.DialogDelegate;
 import org.geoserver.web.wicket.ParamResourceModel;
+import org.geotools.data.DataStoreFactorySpi;
 import org.geotools.util.logging.Logging;
 import org.opengeo.data.importer.ImportContext;
 import org.opengeo.data.importer.ImportData;
+import org.opengeo.data.importer.ImportTask;
 import org.opengeo.data.importer.Importer;
 
 /**
@@ -67,7 +64,7 @@ import org.opengeo.data.importer.Importer;
  * @author Justin Deoliveira, OpenGeo
  */
 @SuppressWarnings("serial")
-public class ImportDataPage extends GeoServerBasePage {
+public class ImportDataPage extends GeoServerSecuredPage {
 
     static Logger LOGGER = Logging.getLogger(ImportDataPage.class);
 
@@ -82,7 +79,9 @@ public class ImportDataPage extends GeoServerBasePage {
     
     String storeName;
     TextField storeNameTextField;
-    
+
+    ImportContextTable importTable;
+
     GeoServerDialog dialog;
     
     public ImportDataPage(PageParameters params) {
@@ -108,13 +107,19 @@ public class ImportDataPage extends GeoServerBasePage {
                     link.add(new AttributeAppender("class", true, new Model("selected"), " "));
                 }
                 item.add(link);
-                
+
                 item.add(new Label("description", source .getDescription(ImportDataPage.this)));
-                
+
                 Image icon = new Image("icon", source.getIcon());
                 icon.add(
                     new AttributeModifier("alt", true, source.getDescription(ImportDataPage.this)));
                 item.add(icon);
+
+                if (!source.isAvailable()) {
+                    item.setEnabled(false);
+                    item.add(new SimpleAttributeModifier("title", "Data source not available. Please " +
+                        "install required plug-in and drivers."));
+                }
             }
             
         };
@@ -134,32 +139,23 @@ public class ImportDataPage extends GeoServerBasePage {
         workspaceChoice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                store.setObject(GeoServerApplication.get().getCatalog()
-                    .getDefaultDataStore((WorkspaceInfo) workspace.getObject()));
-                target.addComponent(storeChoice);
+                updateDefaultStore(target);
             }
         });
         form.add(workspaceChoice);
         
         //store chooser
-        //store = new StoreModel(catalog.getDefaultDataStore((WorkspaceInfo) workspace.getObject()));
-        store = new StoreModel(null);
-        storeChoice = 
-            new DropDownChoice("store", store, new StoresModel(workspace), new StoreChoiceRenderer());
+        store = new StoreModel(catalog.getDefaultDataStore((WorkspaceInfo) workspace.getObject()));
+        storeChoice = new DropDownChoice("store", store, new EnabledStoresModel(workspace),
+            new StoreChoiceRenderer()) {
+            protected String getNullValidKey() {
+                return ImportDataPage.class.getSimpleName() + "." + super.getNullValidKey();
+            };
+        };
         storeChoice.setOutputMarkupId(true);
-//        storeChoice.setEnabled(false);
-//        storeChoice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-//                storeNameTextField.setEnabled(store.getObject() == null);
-//                target.addComponent(storeNameTextField);
-//            }
-//        });
+
         storeChoice.setNullValid(true);
         form.add(storeChoice);
-        
-        //form.add(storeNameTextField = new TextField("storeName", new PropertyModel(this, "storeName")));
-        //storeNameTextField.setOutputMarkupId(true);
         
         // new workspace
         form.add(new AjaxLink("newWorkspace") {
@@ -190,7 +186,7 @@ public class ImportDataPage extends GeoServerBasePage {
                             
                             catalog.add( ws );
                             catalog.add( ns );
-                            
+
                             return true;
                         } catch(Exception e) {
                             e.printStackTrace();
@@ -204,6 +200,7 @@ public class ImportDataPage extends GeoServerBasePage {
                         workspace = new WorkspaceDetachableModel(catalog.getWorkspaceByName(wsName));
                         workspaceChoice.setModel(workspace);
                         target.addComponent(workspaceChoice);
+                        target.addComponent(storeChoice);
                     }
                     
                     @Override
@@ -237,7 +234,12 @@ public class ImportDataPage extends GeoServerBasePage {
                     @Override
                     protected void onTimer(AjaxRequestTarget target) {
                         ImportSourcePanel panel = (ImportSourcePanel) sourcePanel.get("content");
-                        ImportData source = panel.createImportSource();
+                        ImportData source;
+                        try {
+                            source = panel.createImportSource();
+                        } catch (IOException e) {
+                            throw new WicketRuntimeException(e);
+                        }
                         WorkspaceInfo targetWorkspace = (WorkspaceInfo) 
                             (workspace.getObject() != null ? workspace.getObject() : null);
                         StoreInfo targetStore = (StoreInfo) (store.getObject() != null ? store
@@ -247,10 +249,37 @@ public class ImportDataPage extends GeoServerBasePage {
                         try {
                             ImportContext imp = importer.createContext(source, targetWorkspace,
                                     targetStore);
-                            PageParameters pp = new PageParameters();
-                            pp.put("id", imp.getId());
 
-                            setResponsePage(ImportPage.class, pp);
+                            //check the import for actual things to do
+                            boolean proceed = !imp.getTasks().isEmpty();
+                            if (proceed) {
+                                //check that all the tasks are non-empty
+                                proceed = false;
+                                for (ImportTask t : imp.getTasks()) {
+                                    if (!t.getItems().isEmpty()) {
+                                        proceed = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (proceed) {
+                                imp.setArchive(false);
+                                importer.changed(imp);
+    
+                                PageParameters pp = new PageParameters();
+                                pp.put("id", imp.getId());
+    
+                                setResponsePage(ImportPage.class, pp);
+                            }
+                            else {
+                                info("No data to import was found");
+                                target.addComponent(feedbackPanel);
+
+                                importer.delete(imp);
+
+                                resetNextButton(self, target);
+                            }
                         } catch (Exception e) {
                             LOGGER.log(Level.SEVERE, e.getLocalizedMessage(), e);
                             error(e);
@@ -258,54 +287,53 @@ public class ImportDataPage extends GeoServerBasePage {
                             target.addComponent(feedbackPanel);
 
                             //update the button back to original state
-                            self.add(new AttributeModifier("class", true, new Model("")));
-                            self.setEnabled(true);
-                            self.get(0).setDefaultModelObject("Next");
-                            target.addComponent(self);
+                            resetNextButton(self, target);
                         }
                         finally {
                             stop();
                         }
                     }
                 });
-//                ImportSourcePanel panel = (ImportSourcePanel) sourcePanel.get("content");
-//                ImportData source = panel.createImportSource();
-//                WorkspaceInfo targetWorkspace = 
-//                    (WorkspaceInfo) (workspace.getObject() != null ? workspace.getObject() : null);    
-//                StoreInfo targetStore = 
-//                    (StoreInfo) (store.getObject() != null ? store.getObject() : null);
-//                
-//                Importer importer = ImporterWebUtils.importer();
-//                try {
-//                    ImportContext imp = importer.createContext(source, targetWorkspace, targetStore);
-//                    PageParameters pp = new PageParameters();
-//                    pp.put("id", imp.getId());
-//                    
-//                    setResponsePage(ImportPage.class, pp);
-//                }
-//                catch(Exception e) {
-//                    LOGGER.log(Level.SEVERE, e.getLocalizedMessage(), e);
-//                    error(e);
-//                }
             }
         }.add(new Label("message", new Model("Next"))));
 
-        ImportContextTable importTable = 
-            new ImportContextTable("imports", new ImportContextProvider() {
-                @Override
-                protected List<org.geoserver.web.wicket.GeoServerDataProvider.Property<ImportContext>> getProperties() {
-                    return Arrays.asList(ID, CREATED, STATE);
-                }
+        importTable = new ImportContextTable("imports", new ImportContextProvider() {
+            @Override
+            protected List<org.geoserver.web.wicket.GeoServerDataProvider.Property<ImportContext>> getProperties() {
+                return Arrays.asList(ID, CREATED, STATE);
+            }
         });
+        importTable.setOutputMarkupId(true);
         importTable.setFilterable(false);
         importTable.setSortable(false);
         form.add(importTable);
 
+        form.add(new AjaxLink("removeAll") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                Importer importer = ImporterWebUtils.importer();
+                importer.getStore().removeAll();
+                target.addComponent(importTable);
+            }
+        }.setVisible(ImporterWebUtils.isDevMode()));
+        
         add(dialog = new GeoServerDialog("dialog"));
         
         updateSourcePanel(Source.SPATIAL_FILES);
+        updateDefaultStore(null);
     }
-    
+
+    void updateDefaultStore(AjaxRequestTarget target) {
+        WorkspaceInfo ws = (WorkspaceInfo) workspace.getObject();
+        if (workspace != null) {
+            store.setObject(GeoServerApplication.get().getCatalog().getDefaultDataStore(ws));
+        }
+
+        if (target != null) {
+            target.addComponent(storeChoice);
+        }
+    }
+
     void updateSourcePanel(Source source) {
         Panel old = (Panel) sourcePanel.get(0);
         if (old != null) {
@@ -330,6 +358,13 @@ public class ImportDataPage extends GeoServerBasePage {
         }
     }
 
+    void resetNextButton(AjaxSubmitLink next, AjaxRequestTarget target) {
+        next.add(new AttributeModifier("class", true, new Model("")));
+        next.setEnabled(true);
+        next.get(0).setDefaultModelObject("Next");
+        target.addComponent(next);
+    }
+
     /**
      * A type data source.
      */
@@ -345,6 +380,28 @@ public class ImportDataPage extends GeoServerBasePage {
             ImportSourcePanel createPanel(String panelId) {
                 return new PostGISPanel(panelId);
             }  
+        }, 
+        ORACLE(DataIcon.DATABASE) { 
+            @Override
+            ImportSourcePanel createPanel(String panelId) {
+                return new OraclePanel(panelId);
+            }
+
+            @Override
+            boolean isAvailable() {
+                return isDataStoreFactoryAvaiable("org.geotools.data.oracle.OracleNGDataStoreFactory");
+            }
+        }, 
+        SQLSERVER(DataIcon.DATABASE) {
+            @Override
+            ImportSourcePanel createPanel(String panelId) {
+                return new SQLServerPanel(panelId);
+            }
+
+            @Override
+            boolean isAvailable() {
+                return isDataStoreFactoryAvaiable("org.geotools.data.sqlserver.SQLServerDataStoreFactory");
+            }
         };
         
 //        directory(new ResourceReference(GeoServerApplication.class, "img/icons/silk/folder.png"),
@@ -364,14 +421,8 @@ public class ImportDataPage extends GeoServerBasePage {
 
         DataIcon icon;
 
-        //Class<? extends Page> destinationPage;
-
-        //String factoryClassName;
-
         Source(DataIcon icon) {
             this.icon = icon;
-            //this.destinationPage = destinationPage;
-            //this.factoryClassName = factoryClassName;
         }
 
         IModel getName(Component component) {
@@ -385,46 +436,42 @@ public class ImportDataPage extends GeoServerBasePage {
         ResourceReference getIcon() {
             return icon.getIcon();
         }
-        
-        abstract ImportSourcePanel createPanel(String panelId);
 
-//        Class<? extends Page> getDestinationPage() {
-//            return destinationPage;
-//        }
-//
-//        /**
-//         * Checks whether the datastore is installed and available (e.g., all the extra libraries it
-//         * requires are there)
-//         * 
-//         * @return
-//         */
-//        boolean isAvailable() {
-//            try {
-//                Class<?> clazz = Class.forName(factoryClassName);
-//                DataStoreFactorySpi factory = (DataStoreFactorySpi) clazz.newInstance();
-//                return factory.isAvailable();
-//            } catch (Exception e) {
-//                return false;
-//            }
-//        }
-//
-//        /**
-//         * Returns the list of stores that are known to be available
-//         * 
-//         * @return
-//         * @see #isAvailable()
-//         */
-//        static List<Store> getAvailableStores() {
-//            List<Store> stores = new ArrayList<Store>(Arrays.asList(values()));
-//            for (Iterator<Store> it = stores.iterator(); it.hasNext();) {
-//                Store store = it.next();
-//                if (!store.isAvailable())
-//                    it.remove();
-//            }
-//
-//            return stores;
-//        }
+        boolean isAvailable() {
+            return true;
+        }
+
+        boolean isDataStoreFactoryAvaiable(String className) {
+            Class<DataStoreFactorySpi> clazz = null;
+            try {
+                clazz = (Class<DataStoreFactorySpi>) Class.forName(className);
+            }
+            catch(Exception e) {
+                if(LOGGER.isLoggable(Level.FINE)) {
+                    LOGGER.log(Level.FINE, "DataStore class not available: " + className, e);
+                }
+            }
+            if (clazz == null) {
+                return false;
+            }
+
+            DataStoreFactorySpi factory = null;
+            try {
+                factory = clazz.newInstance();
+            }
+            catch(Exception e) {
+                if(LOGGER.isLoggable(Level.FINE)) {
+                    LOGGER.log(Level.FINE, "Error creating DataStore factory: " + className, e);
+                }
+            }
+
+            if (factory == null) {
+                return false;
+            }
+
+            return factory.isAvailable();
+        }
+
+        abstract ImportSourcePanel createPanel(String panelId);
     }
-    
-    
 }

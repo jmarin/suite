@@ -1,0 +1,22 @@
+diff -ru data_dir_orig/workspaces/opengeo/postgis/datastore.xml data_dir/workspaces/opengeo/postgis/datastore.xml
+--- data_dir_orig/workspaces/opengeo/postgis/datastore.xml	2012-05-23 00:13:00.000000000 -0700
++++ data_dir/workspaces/opengeo/postgis/datastore.xml	2012-05-23 14:23:57.000000000 -0700
+@@ -9,7 +9,7 @@
+   </workspace>
+   <connectionParameters>
+     <entry key="Connection timeout">20</entry>
+-    <entry key="port">54321</entry>
++    <entry key="port">5432</entry>
+     <entry key="dbtype">postgis</entry>
+     <entry key="host">localhost</entry>
+     <entry key="validate connections">true</entry>
+@@ -24,7 +24,8 @@
+     <entry key="Max open prepared statements">50</entry>
+     <entry key="preparedStatements">false</entry>
+     <entry key="Estimated extends">true</entry>
+-    <entry key="user">postgres</entry>
++    <entry key="user">opengeo</entry>
++    <entry key="passwd">opengeo</entry>
+     <entry key="min connections">1</entry>
+   </connectionParameters>
+   <__default>true</__default>

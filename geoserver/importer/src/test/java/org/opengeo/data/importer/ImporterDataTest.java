@@ -46,6 +46,26 @@ public class ImporterDataTest extends ImporterTestSupport {
         runChecks("archsites");
     }
 
+    public void testImportShapefilesWithExtraFiles() throws Exception {
+        File dir = tmpDir();
+        unpack("shape/archsites_epsg_prj.zip", dir);
+        
+        // make some 'extra' files
+        new File(dir,"archsites.sbn").createNewFile();
+        new File(dir,"archsites.sbx").createNewFile();
+        new File(dir,"archsites.shp.xml").createNewFile();
+        
+        ImportContext context = importer.createContext(new Directory(dir));
+        
+        assertEquals(1, context.getTasks().size());
+        
+        ImportTask task = context.getTasks().get(0);
+        assertEquals(ImportTask.State.READY, task.getState());
+        
+        assertEquals(ImportItem.State.READY, task.getItems().get(0).getState());
+        assertEquals("archsites", task.getItems().get(0).getLayer().getResource().getName());
+    }
+    
     public void testImportShapefiles() throws Exception {
         File dir = tmpDir();
         unpack("shape/archsites_epsg_prj.zip", dir);
@@ -109,6 +129,26 @@ public class ImporterDataTest extends ImporterTestSupport {
         runChecks("bugsites");
     }
  
+    public void testImportNoCrsLatLonBoundingBox() throws Exception {
+        File dir = unpack("shape/archsites_no_crs.zip");
+
+        ImportContext context = importer.createContext(new Directory(dir));
+        assertEquals(1, context.getTasks().size());
+
+        ImportTask task = context.getTasks().get(0);
+        assertEquals(ImportTask.State.INCOMPLETE, task.getState());
+        assertEquals(1, task.getItems().size());
+
+        ImportItem item = task.getItems().get(0);
+        assertEquals(ImportItem.State.NO_CRS, item.getState());
+        assertNull(item.getLayer().getResource().getLatLonBoundingBox());
+
+        item.getLayer().getResource().setSRS("EPSG:26713");
+        importer.changed(item);
+
+        assertEquals(ImportItem.State.READY, item.getState());
+        assertNotNull(item.getLayer().getResource().getLatLonBoundingBox());
+    }
     public void testImportUnknownFile() throws Exception {
         File dir = unpack("gml/states_wfs11.xml.gz");
 
@@ -206,38 +246,29 @@ public class ImporterDataTest extends ImporterTestSupport {
 //        runChecks("states");
 //    }
 //
+
     public void testImportIntoDatabase() throws Exception {
         Catalog cat = getCatalog();
 
-        DataStoreInfo ds = cat.getFactory().createDataStore();
-        ds.setWorkspace(cat.getDefaultWorkspace());
-        ds.setName("spearfish");
-        ds.setType("H2");
+        DataStoreInfo ds = createH2DataStore(cat.getDefaultWorkspace().getName(), "spearfish");
 
-        Map params = new HashMap();
-        params.put("database", getTestData().getDataDirectoryRoot().getPath()+"/spearfish");
-        params.put("dbtype", "h2");
-        ds.getConnectionParameters().putAll(params);
-        ds.setEnabled(true);
-        cat.add(ds);
-        
         File dir = tmpDir();
         unpack("shape/archsites_epsg_prj.zip", dir);
         unpack("shape/bugsites_esri_prj.tar.gz", dir);
 
         ImportContext context = importer.createContext(new Directory(dir), ds);
-        assertEquals(2, context.getTasks().size());
+        assertEquals(1, context.getTasks().size());
 
-        assertEquals(1, context.getTasks().get(0).getItems().size());
-        assertEquals(1, context.getTasks().get(1).getItems().size());
+        assertEquals(2, context.getTasks().get(0).getItems().size());
+        //assertEquals(1, context.getTasks().get(1).getItems().size());
 
         assertEquals(ImportTask.State.READY, context.getTasks().get(0).getState());
-        assertEquals(ImportTask.State.READY, context.getTasks().get(1).getState());
+        //assertEquals(ImportTask.State.READY, context.getTasks().get(1).getState());
         
         ImportItem item1 = context.getTasks().get(0).getItems().get(0);
         assertEquals(ImportItem.State.READY, item1.getState());
         
-        ImportItem item2 = context.getTasks().get(1).getItems().get(0);
+        ImportItem item2 = context.getTasks().get(0).getItems().get(1);
         assertEquals(ImportItem.State.READY, item2.getState());
         
         // cannot ensure ordering of items
@@ -265,18 +296,8 @@ public class ImporterDataTest extends ImporterTestSupport {
     public void testImportIntoDatabaseWithEncoding() throws Exception {
         Catalog cat = getCatalog();
 
-        DataStoreInfo ds = cat.getFactory().createDataStore();
-        ds.setWorkspace(cat.getDefaultWorkspace());
-        ds.setName("ming");
-        ds.setType("H2");
+        DataStoreInfo ds = createH2DataStore(cat.getDefaultWorkspace().getName(), "ming"); 
 
-        Map params = new HashMap();
-        params.put("database", getTestData().getDataDirectoryRoot().getPath()+"/ming");
-        params.put("dbtype", "h2");
-        ds.getConnectionParameters().putAll(params);
-        ds.setEnabled(true);
-        cat.add(ds);
-        
         File dir = tmpDir();
         unpack("shape/ming_time.zip", dir);
 
@@ -318,8 +339,8 @@ public class ImporterDataTest extends ImporterTestSupport {
         int bugsitesCount = fs.getCount(Query.ALL);
 
         ImportContext context = importer.createContext(new Directory(dir), ds);
-        context.getTasks().get(0).setUpdateMode(ImportTask.UpdateMode.REPLACE);
-        context.getTasks().get(1).setUpdateMode(ImportTask.UpdateMode.APPEND);
+        context.getTasks().get(0).getItems().get(0).setUpdateMode(UpdateMode.REPLACE);
+        context.getTasks().get(0).getItems().get(1).setUpdateMode(UpdateMode.APPEND);
         
         importer.run(context);
         
@@ -386,4 +407,57 @@ public class ImporterDataTest extends ImporterTestSupport {
 //        importer.run(imp);
 //        runChecks("states");
 //    }
+
+    public void testImportNameClash() throws Exception {
+        File dir = unpack("shape/archsites_epsg_prj.zip");
+        
+        ImportContext context = 
+                importer.createContext(new SpatialFile(new File(dir, "archsites.shp")));
+        importer.run(context);
+        
+        Catalog cat = getCatalog();
+        assertNotNull(cat.getLayerByName("archsites"));
+        runChecks("archsites");
+
+        context = importer.createContext(new SpatialFile(new File(dir, "archsites.shp")));
+        importer.run(context);
+
+        ImportItem i = context.getTasks().get(0).getItems().get(0);
+        assertEquals("archsites0", i.getLayer().getName());
+        runChecks("archsites0");
+    }
+
+    public void testArchiveOnIndirectImport() throws Exception {
+        File dir = unpack("shape/archsites_epsg_prj.zip");
+        assertTrue(dir.exists());
+
+        DataStoreInfo ds = createH2DataStore(null, "foo");
+        
+        ImportContext context = 
+            importer.createContext(new SpatialFile(new File(dir, "archsites.shp")), ds);
+        importer.run(context);
+        assertFalse(dir.exists());
+
+        dir = unpack("shape/bugsites_esri_prj.tar.gz");
+        assertTrue(dir.exists());
+        context = importer.createContext(new SpatialFile(new File(dir, "bugsites.shp")), ds);
+        context.setArchive(false);
+
+        importer.run(context);
+        assertTrue(dir.exists());
+    }
+
+    public void testImportDatabaseIntoDatabase() throws Exception {
+        File dir = unpack("h2/cookbook.zip");
+
+        DataStoreInfo ds = createH2DataStore("gs", "cookbook");
+
+        Map params = new HashMap();
+        params.put(H2DataStoreFactory.DBTYPE.key, "h2");
+        params.put(H2DataStoreFactory.DATABASE.key, new File(dir, "cookbook").getAbsolutePath());
+     
+        ImportContext context = importer.createContext(new Database(params), ds);
+        assertEquals(1, context.getTasks().size());
+        assertEquals(3, context.getTasks().get(0).getItems().size());
+    }
 }

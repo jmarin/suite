@@ -2,11 +2,15 @@ package org.opengeo.data.importer;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
+import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.test.GeoServerTestSupport;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
@@ -16,6 +20,10 @@ import org.w3c.dom.Document;
 import com.mockrunner.mock.web.MockHttpServletResponse;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import net.sf.json.JSONObject;
 import net.sf.json.util.JSONBuilder;
 
@@ -55,6 +63,19 @@ public class ImporterTestSupport extends GeoServerTestSupport {
 
     protected File unpack(String path, File dir) throws Exception {
         
+        File file = file(path, dir);
+        
+        new VFSWorker().extractTo(file, dir);
+        file.delete();
+        
+        return dir;
+    }
+
+    protected File file(String path) throws Exception {
+        return file(path, tmpDir());
+    }
+
+    protected File file(String path, File dir) throws IOException {
         String filename = new File(path).getName();
         InputStream in = ImporterTestSupport.class.getResourceAsStream("../test-data/" + path);
         
@@ -65,11 +86,8 @@ public class ImporterTestSupport extends GeoServerTestSupport {
         in.close();
         out.flush();
         out.close();
-        
-        new VFSWorker().extractTo(file, dir);
-        file.delete();
-        
-        return dir;
+
+        return file;
     }
 
     protected void runChecks(String layerName) throws Exception {
@@ -94,7 +112,37 @@ public class ImporterTestSupport extends GeoServerTestSupport {
             getAsServletResponse("wms/reflect?layers=" + layer.getResource().getPrefixedName());
         assertEquals("image/png", response.getContentType());
     }
-    
+
+    protected DataStoreInfo createH2DataStore(String wsName, String dsName) {
+        //create a datastore to import into
+        Catalog cat = getCatalog();
+
+        WorkspaceInfo ws = wsName != null ? cat.getWorkspaceByName(wsName) : cat.getDefaultWorkspace();
+        DataStoreInfo ds = cat.getFactory().createDataStore();
+        ds.setWorkspace(ws);
+        ds.setName(dsName);
+        ds.setType("H2");
+
+        Map params = new HashMap();
+        params.put("database", getTestData().getDataDirectoryRoot().getPath()+"/" + dsName);
+        params.put("dbtype", "h2");
+        ds.getConnectionParameters().putAll(params);
+        ds.setEnabled(true);
+        cat.add(ds);
+        
+        return ds;
+    }
+
+    protected int lastId() {
+        Iterator<ImportContext> ctx = importer.getAllContexts();
+        int id = -1;
+        while (ctx.hasNext()) {
+            ctx.next();
+            id++;
+        }
+        return id;
+    }
+
     public static class JSONObjectBuilder extends JSONBuilder {
 
         public JSONObjectBuilder() {

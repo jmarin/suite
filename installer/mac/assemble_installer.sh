@@ -20,10 +20,13 @@ pro=$(echo $PROFILE|sed 's/\(.\{1,\}\)/\1-/g')
 dashboard_version=1.0.0
 pgsql_version=8.4
 
-dashboard_url=http://suite.opengeo.org/builds/${DIST_PATH}/dashboard-${id}-osx.zip
-suite_url=http://suite.opengeo.org/builds/${DIST_PATH}/opengeosuite-${pro}${id}-mac.zip
-ext_url=http://suite.opengeo.org/builds/${DIST_PATH}/opengeosuite-${id}-ext.zip
+base_url=http://suite.opengeo.org/builds/${DIST_PATH}/${REVISION}
+dashboard_url=$base_url/opengeosuite-${pro}${id}-dashboard-osx.zip
+suite_url=$base_url/opengeosuite-${pro}${id}-mac.zip
+ext_url=${base_url}/opengeosuite-${id}-ext.zip
+sdk_url=${base_url}/opengeosuite-${id}-sdk.zip
 pgsql_url=http://suite.opengeo.org/osxbuilds/postgis-osx.zip
+gdal_url=http://suite.opengeo.org/osxbuilds/gdal-osx.zip
 
 export PATH=$PATH:/usr/local/bin
 
@@ -233,6 +236,49 @@ if [ -d "./build/GeoServer Extensions.pkg" ]; then
 fi
 freeze ./geoserverext.packproj
 checkrv $? "Ext packaging"
+
+#
+# Build the GDAL Package
+#
+getfile $gdal_url binaries/gdal.zip
+if [ -d binaries/gdal ]; then
+  rm -rf binaries/gdal
+fi
+unzip -o binaries/gdal.zip -d binaries/gdal
+checkrv $? "GDAL unzip"
+if [ -d "./build/GDAL.pkg" ]; then
+  find "./build/GDAL.pkg" -type f -exec chmod 664 {} ';'
+  find "./build/GDAL.pkg" -type d -exec chmod 775 {} ';'
+  rm -rf "./build/GDAL.pkg"
+fi
+freeze ./gdal.packproj
+
+# MrSID Package
+if [ -d "./build/GDAL-MrSID.pkg" ]; then
+  find "./build/GDAL-MrSID.pkg" -type f -exec chmod 664 {} ';'
+  find "./build/GDAL-MrSID.pkg" -type d -exec chmod 775 {} ';'
+  rm -rf "./build/GDAL-MrSID.pkg"
+fi
+freeze ./gdal-mrsid.packproj
+checkrv $? "GDAL packaging"
+
+#
+# Build the SDK Package
+#
+getfile $sdk_url binaries/sdk.zip
+if [ -d binaries/sdk ]; then
+  rm -rf binaries/sdk
+fi
+unzip -o binaries/sdk.zip -d binaries/
+mv binaries/opengeosuite-*-sdk binaries/sdk
+checkrv $? "SDK unzip"
+if [ -d "./build/SDK.pkg" ]; then
+  find "./build/SDK.pkg" -type f -exec chmod 664 {} ';'
+  find "./build/SDK.pkg" -type d -exec chmod 775 {} ';'
+  rm -rf "./build/SDK.pkg"
+fi
+freeze ./sdk.packproj
+checkrv $? "SDK packaging"
 
 # 
 # Build the Suite package
